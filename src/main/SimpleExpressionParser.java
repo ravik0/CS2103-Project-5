@@ -33,13 +33,13 @@ public class SimpleExpressionParser implements ExpressionParser {
 	
 	protected Expression parseExpression (String str) {
 		Expression expression;
+		if(!verifyExpression(str)) return null;
 		
 		// TODO implement me
 		return null;
 	}
 	
-	public static boolean verifyExpression(String x) {
-		x = removeAllWhiteSpace(x);
+	private static boolean verifyExpression(String x) {
 		int len = x.length();
 		if((len == 1 && Character.isLetter(x.charAt(0)) || isNumber(x))) return true; //L -> [a-z] | [0-9]+
 		else if (len >= 2 && x.charAt(0) == '(' && verifyExpression(x.substring(1, len-1)) && x.charAt(len-1) == ')') return true; //X -> (E)
@@ -50,7 +50,7 @@ public class SimpleExpressionParser implements ExpressionParser {
 	private static boolean verifyMultOrAddExpr(String x, Character modifier) {
 		int len = x.length();
 		for(int i = 1; i < len-1; i++) {
-			if(x.charAt(i) == modifier && isNotModifier(x.charAt(i-1)) && isNotModifier(x.charAt(i+1))
+			if(!isNotModifier(x.charAt(i)) && isNotModifier(x.charAt(i-1)) && isNotModifier(x.charAt(i+1))
 					&& verifyExpression(x.substring(0,i)) && verifyExpression(x.substring(i+1))) return true;
 		}
 		return false;
@@ -64,17 +64,6 @@ public class SimpleExpressionParser implements ExpressionParser {
 			return false;
 		}
 		return true;
-	}
-	
-	private static String removeAllWhiteSpace(String x) {
-		StringBuilder bob = new StringBuilder();
-		for(int i = 0; i < x.length(); i++) {
-			String character = x.substring(i, i+1);
-			if(!character.equals(" ")) {
-				bob.append(character);
-			}
-		}
-		return bob.toString();
 	}
 	
 	private static boolean isNotModifier(Character x) {
