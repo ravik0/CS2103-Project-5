@@ -41,7 +41,7 @@ public class SimpleExpressionParser implements ExpressionParser {
 	
 	private static boolean verifyExpression(String x) {
 		int len = x.length();
-		if((len == 1 && Character.isLetter(x.charAt(0)) || isNumber(x))) return true; //L -> [a-z] | [0-9]+
+		if((len == 1 && Character.isLetter(x.charAt(0)) || CompoundExpr.isNumber(x))) return true; //L -> [a-z] | [0-9]+
 		else if (len >= 2 && x.charAt(0) == '(' && verifyExpression(x.substring(1, len-1)) && x.charAt(len-1) == ')') return true; //X -> (E)
 		if(verifyMultOrAddExpr(x, '*') || verifyMultOrAddExpr(x, '+')) return true; // M -> M*M || A -> A+M
 		return false;
@@ -56,15 +56,6 @@ public class SimpleExpressionParser implements ExpressionParser {
 		return false;
 	}
 	
-	private static boolean isNumber(String x) {
-		try {
-			Double.parseDouble(x);
-		}
-		catch (NumberFormatException e) {
-			return false;
-		}
-		return true;
-	}
 	
 	private static boolean isNotModifier(Character x) {
 		return !(x == '*' || x == '+');

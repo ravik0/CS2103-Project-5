@@ -40,7 +40,7 @@ public interface Expression {
 
 	/**
 	 * Static helper method to indent a specified number of times from the left margin, by
-	 * appending tab characters to teh specified StringBuffer.
+	 * appending tab characters to the specified StringBuffer.
 	 * @param sb the StringBuffer to which to append tab characters.
 	 * @param indentLevel the number of tabs to append.
 	 */
