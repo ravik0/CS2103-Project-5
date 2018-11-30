@@ -56,17 +56,16 @@ public class CompoundExpr implements CompoundExpression{
 	public String convertToString(int indentLevel) {
 		StringBuffer sb = new StringBuffer();
 		Expression.indent(sb, indentLevel);
-		sb.append(getName());
+		sb.append(getName() + '\n');
 		for(int i = 0; i < _children.size(); i++) {
-			sb.append('\n' + _children.get(i).convertToString(indentLevel+1));
+			sb.append(_children.get(i).convertToString(indentLevel+1));
 		}
 		return sb.toString();
 	}
 
 	@Override
 	public void addSubexpression(Expression subexpression) {
-		if(!isNumber(getName()) && !Character.isLetter(getName().charAt(0))) _children.add(subexpression);
-		else throw new IllegalArgumentException("This is a literal!");
+		_children.add(subexpression);
 	}
 	
 	protected List<Expression> getChildren() {

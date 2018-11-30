@@ -1,4 +1,7 @@
 package main;
+
+import java.util.ArrayList;
+
 /**
  * Starter code to implement an ExpressionParser. Your code should parse a context-free grammar
  * for mathematical expressions for addition, multiplication, and parentheses over single-letter
@@ -25,18 +28,21 @@ public class SimpleExpressionParser implements ExpressionParser {
 			// If we couldn't parse the string, then raise an error
 			throw new ExpressionParseException("Cannot parse expression: " + str);
 		}
-
 		// Flatten the expression before returning
+		CompoundExpr a = (CompoundExpr) ((CompoundExpr)expression).getChildren().get(1);
 		expression.flatten();
 		return expression;
 	}
 	
 	protected Expression parseExpression (String str) {
-		Expression expression;
+		System.out.println(str);
 		if(!verifyExpression(str)) return null;
-		
-		// TODO implement me
-		return null;
+		if(str.length() == 1 || CompoundExpr.isNumber(str)) return new CompoundExpr(str, new ArrayList<Expression>());
+		int mid = str.length()/2; //fix to deal with parenthesis and stuff
+		CompoundExpression top = new CompoundExpr(str.substring(mid, mid+1), new ArrayList<Expression>());
+		top.addSubexpression(parseExpression(str.substring(0,mid)));
+		top.addSubexpression(parseExpression(str.substring(mid+1)));
+		return top;
 	}
 	
 	private static boolean verifyExpression(String x) {
@@ -56,8 +62,8 @@ public class SimpleExpressionParser implements ExpressionParser {
 		return false;
 	}
 	
-	
 	private static boolean isNotModifier(Character x) {
 		return !(x == '*' || x == '+');
 	}
+	
 }

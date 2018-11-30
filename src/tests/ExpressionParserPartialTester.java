@@ -36,7 +36,7 @@ public class ExpressionParserPartialTester {
 		// Yay! We didn't crash
 	}
 
-	@Test
+	//@Test
 	/**
 	 * Verifies that a specific expression is parsed into the correct parse tree.
 	 */
@@ -47,7 +47,6 @@ public class ExpressionParserPartialTester {
 	}
 
 
-	@Test
 	public void test() {
 		CompoundExpression one = new CompoundExpr("*", new ArrayList<Expression>());
 		CompoundExpression two = new CompoundExpr("3", new ArrayList<Expression>());
@@ -71,7 +70,7 @@ public class ExpressionParserPartialTester {
 		System.out.println(one.equals(lol));
 	}
 	
-	@Test
+	//@Test
 	/**
 	 * Verifies that a specific expression is parsed into the correct parse tree.
 	 */
@@ -91,7 +90,7 @@ public class ExpressionParserPartialTester {
 		assertEquals(parseTreeStr, _parser.parse(expressionStr, false).convertToString(0));
 	}
 
-	@Test
+	//@Test
 	/**
 	 * Verifies that a specific expression is parsed into the correct parse tree.
 	 */
@@ -101,7 +100,7 @@ public class ExpressionParserPartialTester {
 		assertEquals(parseTreeStr, _parser.parse(expressionStr, false).convertToString(0));
 	}
 
-	@Test
+	//@Test
 	/**
 	 * Verifies that a specific expression is parsed into the correct parse tree.
 	 */
