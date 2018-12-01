@@ -36,7 +36,7 @@ public class ExpressionParserPartialTester {
 		// Yay! We didn't crash
 	}
 
-	@Test
+	//@Test
 	/**
 	 * Verifies that a specific expression is parsed into the correct parse tree.
 	 */
@@ -46,28 +46,14 @@ public class ExpressionParserPartialTester {
 		assertEquals(parseTreeStr, _parser.parse(expressionStr, false).convertToString(0));
 	}
 
-
-	public void test() {
-		CompoundExpression one = new CompoundExpr("*", new ArrayList<Expression>());
-		CompoundExpression two = new CompoundExpr("3", new ArrayList<Expression>());
-		CompoundExpression three = new CompoundExpr("4", new ArrayList<Expression>());
-		CompoundExpression four = new CompoundExpr("+", new ArrayList<Expression>());
-		CompoundExpression five = new CompoundExpr("()", new ArrayList<Expression>());
-		CompoundExpression seven = new CompoundExpr("()", new ArrayList<Expression>());
-		CompoundExpression six = new CompoundExpr("3", new ArrayList<Expression>());
-		one.addSubexpression(five);
-		one.addSubexpression(two);
-		five.addSubexpression(seven);
-		seven.addSubexpression(four);
-		four.addSubexpression(three);
-		four.addSubexpression(six);
-		System.out.println(one.convertToString(0));
-		one.flatten();
-		System.out.println(one.convertToString(0));
-		
-		Expression lol = one.deepCopy();
-		System.out.println(one.convertToString(0));
-		System.out.println(one.equals(lol));
+	@Test
+	/**
+	 * Verifies that the parser can handle arbitrarily deeply nested balanced parentheses and flatten correctly
+	 */
+	public void testArbitraryNestedParen() throws ExpressionParseException {
+		final String expressionStr = "((2+(((z)))+3))";
+		final String parseTreeStr = "()\n\t+\n\t\t2\n\t\t()\n\t\t\tz\n\t\t3\n";
+		assertEquals(parseTreeStr, _parser.parse(expressionStr, false).convertToString(0));
 	}
 	
 	@Test
@@ -107,8 +93,6 @@ public class ExpressionParserPartialTester {
 	public void testExpressionAndFlatten2 () throws ExpressionParseException {
 		final String expressionStr = "(x+(x)+(x+x)+x)";
 		final String parseTreeStr = "()\n\t+\n\t\tx\n\t\t()\n\t\t\tx\n\t\t()\n\t\t\t+\n\t\t\t\tx\n\t\t\t\tx\n\t\tx\n";
-		System.out.println(parseTreeStr);
-		System.out.println(_parser.parse(expressionStr, false).convertToString(0));
 		assertEquals(parseTreeStr, _parser.parse(expressionStr, false).convertToString(0));
 	}
 

@@ -34,22 +34,32 @@ public class SimpleExpressionParser implements ExpressionParser {
 	}
 	
 	protected Expression parseExpression (String str) {
+		//System.out.println(str);
 		if(!verifyExpression(str)) return null;
 		if(str.length() == 1 || CompoundExpr.isNumber(str)) {
 			return new CompoundExpr(str, new ArrayList<Expression>());
 		}
-		else if (str.charAt(0) == '(') {
-			CompoundExpression top = new CompoundExpr("()", new ArrayList<Expression>());
-			int closeParen = findCloseParen(str);
-			int newStart = findStart(str, closeParen);
-			top.addSubexpression(parseExpression(str.substring(1,closeParen)));
-			if(newStart != -1) top.addSubexpression(parseExpression(str.substring(newStart+1)));
+		CompoundExpr top;
+		int x = str.charAt(0) == '(' ? findCloseParen(str) : findStart(str, 0);
+		int startPoint = 0;
+		int endPoint = str.length();
+		if(x == str.length()-1 && str.charAt(0) == '(') {
+			top = new CompoundExpr("()", new ArrayList<Expression>());
+			top.addSubexpression(parseExpression(str.substring(1, str.length()-1)));
 			return top;
 		}
-		int mid = findStart(str, 0);
-		CompoundExpression top = new CompoundExpr(str.substring(mid, mid+1), new ArrayList<Expression>());
-		top.addSubexpression(parseExpression(str.substring(0,mid)));
-		top.addSubexpression(parseExpression(str.substring(mid+1)));
+		else if(str.charAt(x) == ')'){
+			top = new CompoundExpr(str.substring(x+1,x+2), new ArrayList<Expression>());
+			top.addSubexpression(parseExpression(str.substring(0,x+1)));
+			top.addSubexpression(parseExpression(str.substring(x+2)));
+			return top;
+		}
+		else {
+			top = new CompoundExpr(str.substring(x,x+1), new ArrayList<Expression>());
+		}
+		top.addSubexpression(parseExpression(str.substring(startPoint,x)));
+		top.addSubexpression(parseExpression(str.substring(x+1, endPoint)));
+		top.flatten();
 		return top;
 	}
 	
@@ -75,8 +85,21 @@ public class SimpleExpressionParser implements ExpressionParser {
 	}
 
 	private int findStart(String x, int start) {
+		int passedParen = 0;
 		for(int i = start; i < x.length(); i++) {
-			if(x.charAt(i) == '+' || x.charAt(i) == '*') return i;
+			if(x.charAt(i) == '(') passedParen++;
+			if(x.charAt(i) == ')') passedParen--;
+			if((x.charAt(i) == '+') && passedParen == 0) return i;
+		}
+		return findMult(x, start);
+	}
+	
+	private int findMult(String x, int start) {
+		int passedParen = 0;
+		for(int i = start; i < x.length(); i++) {
+			if(x.charAt(i) == '(') passedParen++;
+			if(x.charAt(i) == ')') passedParen--;
+			if((x.charAt(i) == '*') && passedParen == 0) return i;
 		}
 		return -1;
 	}

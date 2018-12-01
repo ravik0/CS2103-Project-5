@@ -40,9 +40,10 @@ public class CompoundExpr implements CompoundExpression{
 		for(int i = 0; i < currentChildren.size(); i++) {
 			final CompoundExpr current = (CompoundExpr)currentChildren.get(i);
 			if(current.getName().equals(getName())) {
-				current.removeParentFromChildren(this);
-				_children.addAll(current._children);
-				_children.remove(i);
+				for(int a = 0; a < current.getChildren().size(); a++) {
+					this.addSubexpression(current.getChildren().get(a));
+				}
+				_children.remove(current);
 			}
 		}
 		for(Expression x: _children) {
