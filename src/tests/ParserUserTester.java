@@ -4,7 +4,7 @@ import org.junit.Before;
 import org.junit.Test;
 import java.io.*;
 
-import main.CompoundExpr;
+import main.ParsedExpression;
 import main.CompoundExpression;
 import main.Expression;
 import main.ExpressionParseException;

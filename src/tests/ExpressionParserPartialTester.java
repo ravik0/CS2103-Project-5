@@ -3,7 +3,7 @@ import static org.junit.Assert.*;
 import org.junit.Before;
 import org.junit.Test;
 
-import main.CompoundExpr;
+import main.ParsedExpression;
 import main.CompoundExpression;
 import main.Expression;
 import main.ExpressionParseException;
@@ -36,7 +36,7 @@ public class ExpressionParserPartialTester {
 		// Yay! We didn't crash
 	}
 
-	//@Test
+	@Test
 	/**
 	 * Verifies that a specific expression is parsed into the correct parse tree.
 	 */

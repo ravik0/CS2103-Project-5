@@ -33,29 +33,29 @@ public class SimpleExpressionParser implements ExpressionParser {
 		return expression;
 	}
 	
-	protected Expression parseExpression (String str) {
+	private Expression parseExpression (String str) {
 		//System.out.println(str);
 		if(!verifyExpression(str)) return null;
-		if(str.length() == 1 || CompoundExpr.isNumber(str)) {
-			return new CompoundExpr(str, new ArrayList<Expression>());
+		if(str.length() == 1 || ParsedExpression.isNumber(str)) {
+			return new ParsedExpression(str, new ArrayList<Expression>());
 		}
-		CompoundExpr top;
+		ParsedExpression top;
 		int x = str.charAt(0) == '(' ? findCloseParen(str) : findStart(str, 0);
 		int startPoint = 0;
 		int endPoint = str.length();
 		if(x == str.length()-1 && str.charAt(0) == '(') {
-			top = new CompoundExpr("()", new ArrayList<Expression>());
+			top = new ParsedExpression("()", new ArrayList<Expression>());
 			top.addSubexpression(parseExpression(str.substring(1, str.length()-1)));
 			return top;
 		}
 		else if(str.charAt(x) == ')'){
-			top = new CompoundExpr(str.substring(x+1,x+2), new ArrayList<Expression>());
+			top = new ParsedExpression(str.substring(x+1,x+2), new ArrayList<Expression>());
 			top.addSubexpression(parseExpression(str.substring(0,x+1)));
 			top.addSubexpression(parseExpression(str.substring(x+2)));
 			return top;
 		}
 		else {
-			top = new CompoundExpr(str.substring(x,x+1), new ArrayList<Expression>());
+			top = new ParsedExpression(str.substring(x,x+1), new ArrayList<Expression>());
 		}
 		top.addSubexpression(parseExpression(str.substring(startPoint,x)));
 		top.addSubexpression(parseExpression(str.substring(x+1, endPoint)));
@@ -63,15 +63,15 @@ public class SimpleExpressionParser implements ExpressionParser {
 		return top;
 	}
 	
-	private static boolean verifyExpression(String x) {
+	private boolean verifyExpression(String x) {
 		int len = x.length();
-		if((len == 1 && Character.isLetter(x.charAt(0)) || CompoundExpr.isNumber(x))) return true; //L -> [a-z] | [0-9]+
+		if((len == 1 && Character.isLetter(x.charAt(0)) || ParsedExpression.isNumber(x))) return true; //L -> [a-z] | [0-9]+
 		else if (len >= 2 && x.charAt(0) == '(' && verifyExpression(x.substring(1, len-1)) && x.charAt(len-1) == ')') return true; //X -> (E)
 		if(verifyMultOrAddExpr(x, '*') || verifyMultOrAddExpr(x, '+')) return true; // M -> M*M || A -> A+M
 		return false;
 	}
 	
-	private static boolean verifyMultOrAddExpr(String x, Character modifier) {
+	private boolean verifyMultOrAddExpr(String x, Character modifier) {
 		int len = x.length();
 		for(int i = 1; i < len-1; i++) {
 			if(!isNotModifier(x.charAt(i)) && isNotModifier(x.charAt(i-1)) && isNotModifier(x.charAt(i+1))
@@ -80,34 +80,23 @@ public class SimpleExpressionParser implements ExpressionParser {
 		return false;
 	}
 	
-	private static boolean isNotModifier(Character x) {
+	private boolean isNotModifier(Character x) {
 		return !(x == '*' || x == '+');
 	}
 
 	private int findStart(String x, int start) {
-		int passedParen = 0;
-		for(int i = start; i < x.length(); i++) {
-			if(x.charAt(i) == '(') passedParen++;
-			if(x.charAt(i) == ')') passedParen--;
-			if((x.charAt(i) == '+') && passedParen == 0) return i;
-		}
-		return findMult(x, start);
-	}
-	
-	private int findMult(String x, int start) {
-		int passedParen = 0;
-		for(int i = start; i < x.length(); i++) {
-			if(x.charAt(i) == '(') passedParen++;
-			if(x.charAt(i) == ')') passedParen--;
-			if((x.charAt(i) == '*') && passedParen == 0) return i;
-		}
-		return -1;
+		int plus = find(x, start, '+');
+		return plus == -1 ? find(x, start, '*') : plus;
 	}
 	
 	private int findCloseParen(String x) {
+		return find(x, 1, ')');
+	}
+	
+	private int find(String x, int start, Character lookFor) {
 		int passedParen = 0;
-		for(int i = 1; i < x.length(); i++) {
-			if(x.charAt(i) == ')' && passedParen <= 0) return i;
+		for(int i = start; i < x.length(); i++) {
+			if(x.charAt(i) == lookFor && passedParen <= 0) return i;
 			else if (x.charAt(i) == ')') passedParen--;
 			else if (x.charAt(i) == '(') passedParen++;
 		}
