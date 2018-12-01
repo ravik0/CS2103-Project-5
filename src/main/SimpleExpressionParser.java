@@ -29,16 +29,24 @@ public class SimpleExpressionParser implements ExpressionParser {
 			throw new ExpressionParseException("Cannot parse expression: " + str);
 		}
 		// Flatten the expression before returning
-		CompoundExpr a = (CompoundExpr) ((CompoundExpr)expression).getChildren().get(1);
 		expression.flatten();
 		return expression;
 	}
 	
 	protected Expression parseExpression (String str) {
-		System.out.println(str);
 		if(!verifyExpression(str)) return null;
-		if(str.length() == 1 || CompoundExpr.isNumber(str)) return new CompoundExpr(str, new ArrayList<Expression>());
-		int mid = str.length()/2; //fix to deal with parenthesis and stuff
+		if(str.length() == 1 || CompoundExpr.isNumber(str)) {
+			return new CompoundExpr(str, new ArrayList<Expression>());
+		}
+		else if (str.charAt(0) == '(') {
+			CompoundExpression top = new CompoundExpr("()", new ArrayList<Expression>());
+			int closeParen = findCloseParen(str);
+			int newStart = findStart(str, closeParen);
+			top.addSubexpression(parseExpression(str.substring(1,closeParen)));
+			if(newStart != -1) top.addSubexpression(parseExpression(str.substring(newStart+1)));
+			return top;
+		}
+		int mid = findStart(str, 0);
 		CompoundExpression top = new CompoundExpr(str.substring(mid, mid+1), new ArrayList<Expression>());
 		top.addSubexpression(parseExpression(str.substring(0,mid)));
 		top.addSubexpression(parseExpression(str.substring(mid+1)));
@@ -65,5 +73,21 @@ public class SimpleExpressionParser implements ExpressionParser {
 	private static boolean isNotModifier(Character x) {
 		return !(x == '*' || x == '+');
 	}
+
+	private int findStart(String x, int start) {
+		for(int i = start; i < x.length(); i++) {
+			if(x.charAt(i) == '+' || x.charAt(i) == '*') return i;
+		}
+		return -1;
+	}
 	
+	private int findCloseParen(String x) {
+		int passedParen = 0;
+		for(int i = 1; i < x.length(); i++) {
+			if(x.charAt(i) == ')' && passedParen <= 0) return i;
+			else if (x.charAt(i) == ')') passedParen--;
+			else if (x.charAt(i) == '(') passedParen++;
+		}
+		return -1;
+	}
 }

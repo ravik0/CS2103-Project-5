@@ -25,26 +25,24 @@ public class CompoundExpr implements CompoundExpression{
 
 	@Override
 	public Expression deepCopy() {
-		if(_children.equals(new ArrayList<Expression>())) return new CompoundExpr(_name, new ArrayList<Expression>());
-		List<Expression> ret = new ArrayList<Expression>();
-		CompoundExpression end = new CompoundExpr(_name, ret);
+		CompoundExpression end = new CompoundExpr(_name, new ArrayList<Expression>());
+		if(_children.size() == 0) return end;
 		for(int i = 0; i < _children.size(); i++) {
 			Expression child = _children.get(i).deepCopy();
-			child.setParent(end);
-			ret.add(child);
+			end.addSubexpression(child);
 		}
 		return end;
 	}
 
 	@Override
 	public void flatten() {
-		final List<Expression> currentChildren = _children;
-		for(Expression x : currentChildren) {
-			final CompoundExpr current = (CompoundExpr)x;
+		final List<Expression> currentChildren = clone(_children);
+		for(int i = 0; i < currentChildren.size(); i++) {
+			final CompoundExpr current = (CompoundExpr)currentChildren.get(i);
 			if(current.getName().equals(getName())) {
 				current.removeParentFromChildren(this);
 				_children.addAll(current._children);
-				_children.remove(current);
+				_children.remove(i);
 			}
 		}
 		for(Expression x: _children) {
@@ -66,6 +64,7 @@ public class CompoundExpr implements CompoundExpression{
 	@Override
 	public void addSubexpression(Expression subexpression) {
 		_children.add(subexpression);
+		subexpression.setParent(this);
 	}
 	
 	protected List<Expression> getChildren() {
@@ -90,5 +89,21 @@ public class CompoundExpr implements CompoundExpression{
 			return false;
 		}
 		return true;
+	}
+	
+	private static List<Expression> deepClone(List<Expression> a) {
+		List<Expression> x = new ArrayList<Expression>();
+		for(Expression toClone : a) {
+			x.add(toClone.deepCopy());
+		}
+		return x;
+	}
+	
+	private static List<Expression> clone(List<Expression> a) {
+		List<Expression> x = new ArrayList<Expression>();
+		for(Expression toClone : a) {
+			x.add(toClone);
+		}
+		return x;
 	}
 }
