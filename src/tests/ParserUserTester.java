@@ -120,5 +120,18 @@ public class ParserUserTester {
 
         assertEquals(parseTreeStr, _parser.parse(expressionString, false).convertToString(0));
     }
+    
+    @Test
+    public void testDeepCopy() throws ExpressionParseException {
+        final String expressionString = "2 + x * 3";
+        final String modifiedExpressionString = "3 + x * 3";
+        ParsedExpression toBeCopied = (ParsedExpression)_parser.parse(expressionString,false);
+        ParsedExpression modifier = (ParsedExpression)_parser.parse(modifiedExpressionString,false);
+        ParsedExpression original = (ParsedExpression)_parser.parse(expressionString,false);
+
+        Expression deepcopy =  toBeCopied.deepCopy();
+        toBeCopied.getChildren().addAll((modifier.getChildren()));
+        assertEquals(deepcopy.convertToString(0),original.convertToString(0));
+    }
 
 }
