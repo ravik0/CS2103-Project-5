@@ -59,6 +59,7 @@ public class ParsedExpression implements CompoundExpression{
 	}
 
 	public void addSubexpression(Expression subexpression) {
+		if((getName().length() == 1 && Character.isLetter(getName().charAt(0)) || ParsedExpression.isNumber(getName()))) throw new IllegalArgumentException("Subexpression is literal!");
 		_children.add(subexpression);
 		subexpression.setParent(this);
 	}
