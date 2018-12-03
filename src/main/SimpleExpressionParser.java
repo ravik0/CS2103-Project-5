@@ -60,7 +60,6 @@ public class SimpleExpressionParser implements ExpressionParser {
 		top = makeExpr(str,cutPoint,cutPoint+1); //otherwise x is just the position of a modifier
 		addParsedExpr(top,str,0,cutPoint);
 		addParsedExpr(top,str,cutPoint+1,str.length());
-		top.flatten(); //flatten everything before returning it
 		return top;
 	}
 	
@@ -83,7 +82,7 @@ public class SimpleExpressionParser implements ExpressionParser {
 	 * @return a new parsed expression
 	 */
 	private ParsedExpression makeExpr(String x, int start, int end) {
-		return new ParsedExpression(x.substring(start,end), new ArrayList<Expression>());
+		return new ParsedExpression(x.substring(start,end));
 	}
 	/**
 	 * Verifies that a string is a valid mathematical expression

@@ -13,9 +13,9 @@ public class ParsedExpression implements CompoundExpression{
 	private CompoundExpression _parent;
 	private String _name;
 	
-	public ParsedExpression(String name, List<Expression> children) {
+	public ParsedExpression(String name) {
 		_parent = null;
-		_children = children;
+		_children = new ArrayList<Expression>();
 		_name = name;
 	}
 
@@ -28,7 +28,7 @@ public class ParsedExpression implements CompoundExpression{
 	}
 
 	public Expression deepCopy() {
-		final CompoundExpression end = new ParsedExpression(_name, new ArrayList<Expression>());
+		final CompoundExpression end = new ParsedExpression(new String(_name));
 		if(_children.size() == 0) return end;
 		for(int i = 0; i < _children.size(); i++) {
 			final Expression child = _children.get(i).deepCopy(); //recursively copy down the tree
@@ -38,15 +38,15 @@ public class ParsedExpression implements CompoundExpression{
 	}
 
 	public void flatten() {
-		final List<Expression> currentChildren = clone(_children); //create a clone of the list, same objects but new list pointer
-		for(int i = 0; i < currentChildren.size(); i++) {
-			final ParsedExpression current = (ParsedExpression)currentChildren.get(i);
+		for(int i = 0; i < _children.size(); i++) {
+			final ParsedExpression current = (ParsedExpression)_children.get(i);
 			if(current.getName().equals(getName())) { //if you have two of the same expressions
 				final List<Expression> currChild = current.getChildren();
 				for(int a = 0; a < currChild.size(); a++) {
 					this.addSubexpression(currChild.get(a));
 				}
 				_children.remove(current);
+				i--;
 			}
 		}
 		for(Expression x: _children) {
@@ -101,18 +101,5 @@ public class ParsedExpression implements CompoundExpression{
 			return false; //if it throws a NumberFormatException (not a number) then return false
 		}
 		return true;
-	}
-	
-	/**
-	 * Returns a clone of the list, with the list being new and the object pointers being the same. 
-	 * @param a the list to copy
-	 * @return a copied list
-	 */
-	private List<Expression> clone(List<Expression> a) {
-		final List<Expression> x = new ArrayList<Expression>();
-		for(Expression toClone : a) {
-			x.add(toClone);
-		}
-		return x;
 	}
 }
