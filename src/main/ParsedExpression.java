@@ -9,9 +9,9 @@ import java.util.List;
  *
  */
 public class ParsedExpression implements CompoundExpression{
-	protected List<Expression> _children;
-	protected CompoundExpression _parent;
-	protected String _name;
+	private List<Expression> _children;
+	private CompoundExpression _parent;
+	private String _name;
 	
 	public ParsedExpression(String name, List<Expression> children) {
 		_parent = null;
@@ -109,7 +109,7 @@ public class ParsedExpression implements CompoundExpression{
 	 * @return a copied list
 	 */
 	private List<Expression> clone(List<Expression> a) {
-		List<Expression> x = new ArrayList<Expression>();
+		final List<Expression> x = new ArrayList<Expression>();
 		for(Expression toClone : a) {
 			x.add(toClone);
 		}

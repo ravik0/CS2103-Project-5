@@ -41,24 +41,25 @@ public class SimpleExpressionParser implements ExpressionParser {
 	private Expression parseExpression (String str) {
 		if(!verifyExpression(str)) return null;
 		if(str.length() == 1 || ParsedExpression.isNumber(str)) { //if the string is a literal, return it
-			return new ParsedExpression(str, new ArrayList<Expression>());
+			return makeExpr(str,0,str.length());
 		}
 		final ParsedExpression top;
-		int x = str.charAt(0) == '(' ? findCloseParen(str) : findStart(str); //if the first character is an open paren, find the close paren index. otherwise find the split point
-		if(x == str.length()-1 && str.charAt(0) == '(') { //if the first character is an open paren and the close paren index is the end of the string
-			top = new ParsedExpression("()", new ArrayList<Expression>());
+		final boolean stringStartWithParen = str.charAt(0) == '(';
+		final int cutPoint = stringStartWithParen ? findCloseParen(str) : findCutPoint(str); 
+		if(cutPoint == str.length()-1 && stringStartWithParen) { 
+			top = makeExpr("()",0,2);
 			addParsedExpr(top,str,1,str.length()-1); //parse the interior expression
 			return top;
 		}
-		else if(str.charAt(x) == ')'){ //otherwise if first character is an open paren but the close paren isn't at the end of the string
-			top = new ParsedExpression(str.substring(x+1,x+2), new ArrayList<Expression>()); //create a new expression of the modifier next to the close paren
-			addParsedExpr(top,str,0,x+1); //parse the parenthetical expression
-			addParsedExpr(top,str,x+2,str.length()); //parse the rest of the expression
+		else if(str.charAt(cutPoint) == ')'){ //otherwise if first character is an open paren but the close paren isn't at the end of the string
+			top = makeExpr(str,cutPoint+1,cutPoint+2); //create a new expression of the modifier next to the close paren
+			addParsedExpr(top,str,0,cutPoint+1); //parse the parenthetical expression
+			addParsedExpr(top,str,cutPoint+2,str.length()); //parse the rest of the expression
 			return top;
 		}
-		top = new ParsedExpression(str.substring(x,x+1), new ArrayList<Expression>()); //otherwise x is just the position of a modifier
-		addParsedExpr(top,str,0,x);
-		addParsedExpr(top,str,x+1,str.length());
+		top = makeExpr(str,cutPoint,cutPoint+1); //otherwise x is just the position of a modifier
+		addParsedExpr(top,str,0,cutPoint);
+		addParsedExpr(top,str,cutPoint+1,str.length());
 		top.flatten(); //flatten everything before returning it
 		return top;
 	}
@@ -74,6 +75,16 @@ public class SimpleExpressionParser implements ExpressionParser {
 		top.addSubexpression(parseExpression(x.substring(start, end)));
 	}
 	
+	/**
+	 * Helper function to make a new ParsedExpression
+	 * @param x the string to make it out of
+	 * @param start the start position of the name
+	 * @param end the end position of the name
+	 * @return a new parsed expression
+	 */
+	private ParsedExpression makeExpr(String x, int start, int end) {
+		return new ParsedExpression(x.substring(start,end), new ArrayList<Expression>());
+	}
 	/**
 	 * Verifies that a string is a valid mathematical expression
 	 * @param x the string to verify
@@ -116,7 +127,7 @@ public class SimpleExpressionParser implements ExpressionParser {
 	 * @param x the string to look through
 	 * @return the index of + or *
 	 */
-	private int findStart(String x) {
+	private int findCutPoint(String x) {
 		final int plus = find(x, 0, '+');
 		return plus == -1 ? find(x, 0, '*') : plus; //if there is no +, find the *.
 	}
