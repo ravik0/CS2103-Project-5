@@ -52,7 +52,7 @@ public class ParsedExpression implements CompoundExpression{
 		for(Expression x: _children) {
 			x.flatten(); //recursively flatten down the list
 		}
-		//base caes is when something has no children, as then the for loops don't run.
+		//base case is when something has no children, as then the for loops don't run.
 	}
 
 	public String convertToString(int indentLevel) {

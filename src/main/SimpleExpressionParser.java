@@ -44,23 +44,34 @@ public class SimpleExpressionParser implements ExpressionParser {
 			return new ParsedExpression(str, new ArrayList<Expression>());
 		}
 		final ParsedExpression top;
-		int x = str.charAt(0) == '(' ? findCloseParen(str) : findStart(str, 0); //if the first character is an open paren, find the close paren index. otherwise find the split point
+		int x = str.charAt(0) == '(' ? findCloseParen(str) : findStart(str); //if the first character is an open paren, find the close paren index. otherwise find the split point
 		if(x == str.length()-1 && str.charAt(0) == '(') { //if the first character is an open paren and the close paren index is the end of the string
 			top = new ParsedExpression("()", new ArrayList<Expression>());
-			top.addSubexpression(parseExpression(str.substring(1, str.length()-1))); //parse the interior expression
+			addParsedExpr(top,str,1,str.length()-1); //parse the interior expression
 			return top;
 		}
 		else if(str.charAt(x) == ')'){ //otherwise if first character is an open paren but the close paren isn't at the end of the string
-			top = new ParsedExpression(str.substring(x+1,x+2), new ArrayList<Expression>()); //create a new expression with the modifier next to the close paren
-			top.addSubexpression(parseExpression(str.substring(0,x+1))); //parse the parenthetical expression
-			top.addSubexpression(parseExpression(str.substring(x+2))); //parse the rest of the expression
+			top = new ParsedExpression(str.substring(x+1,x+2), new ArrayList<Expression>()); //create a new expression of the modifier next to the close paren
+			addParsedExpr(top,str,0,x+1); //parse the parenthetical expression
+			addParsedExpr(top,str,x+2,str.length()); //parse the rest of the expression
 			return top;
 		}
 		top = new ParsedExpression(str.substring(x,x+1), new ArrayList<Expression>()); //otherwise x is just the position of a modifier
-		top.addSubexpression(parseExpression(str.substring(0,x)));
-		top.addSubexpression(parseExpression(str.substring(x+1)));
+		addParsedExpr(top,str,0,x);
+		addParsedExpr(top,str,x+1,str.length());
 		top.flatten(); //flatten everything before returning it
 		return top;
+	}
+	
+	/**
+	 * Helper function to add a non-parsed subexpression to an already parsed expression
+	 * @param top the parsed expression
+	 * @param x the string containing the non-parsed subexpression
+	 * @param start the position to start the parsing of x
+	 * @param end the position to end the parsing of x
+	 */
+	private void addParsedExpr(ParsedExpression top, String x, int start, int end) {
+		top.addSubexpression(parseExpression(x.substring(start, end)));
 	}
 	
 	/**
@@ -72,21 +83,21 @@ public class SimpleExpressionParser implements ExpressionParser {
 		final int len = x.length();
 		if((len == 1 && Character.isLetter(x.charAt(0)) || ParsedExpression.isNumber(x))) return true; //L -> [a-z] | [0-9]+
 		else if (len >= 2 && x.charAt(0) == '(' && verifyExpression(x.substring(1, len-1)) && x.charAt(len-1) == ')') return true; //X -> (E)
-		if(verifyMultOrAddExpr(x, '*') || verifyMultOrAddExpr(x, '+')) return true; // M -> M*M || A -> A+M
+		if(verifyModifier(x)) return true; // M -> M*M || A -> A+M
 		return false;
 	}
 	
 	/**
-	 * Verifies that a string x passed the grammar cases M -> M*M || A -> A+M
+	 * Verifies that a string x passes the grammar cases M -> M*M || A -> A+M
 	 * @param x the string to verify
-	 * @param modifier the modifier to check
 	 * @return true if it is valid, false otherwise
 	 */
-	private boolean verifyMultOrAddExpr(String x, Character modifier) {
+	private boolean verifyModifier(String x) {
 		final int len = x.length();
 		for(int i = 1; i < len-1; i++) {
 			if(!isNotModifier(x.charAt(i)) && isNotModifier(x.charAt(i-1)) && isNotModifier(x.charAt(i+1))
 					&& verifyExpression(x.substring(0,i)) && verifyExpression(x.substring(i+1))) return true;
+			//checks if the character at position i is a modifier, and the two characters around it aren't
 		}
 		return false;
 	}
@@ -103,12 +114,11 @@ public class SimpleExpressionParser implements ExpressionParser {
 	/**
 	 * Finds where to split the parsing tree off, prioritizing + over *
 	 * @param x the string to look through
-	 * @param start the index to start at
 	 * @return the index of + or *
 	 */
-	private int findStart(String x, int start) {
-		final int plus = find(x, start, '+');
-		return plus == -1 ? find(x, start, '*') : plus; //if there is no +, find the *.
+	private int findStart(String x) {
+		final int plus = find(x, 0, '+');
+		return plus == -1 ? find(x, 0, '*') : plus; //if there is no +, find the *.
 	}
 	
 	/**
@@ -128,7 +138,7 @@ public class SimpleExpressionParser implements ExpressionParser {
 	 * @return the index of the character, -1 if it is not present
 	 */
 	private int find(String x, int start, Character lookFor) {
-		int passedParen = 0;
+		int passedParen = 0; //makes sure that this character is not inside of a parenthesis block
 		for(int i = start; i < x.length(); i++) {
 			if(x.charAt(i) == lookFor && passedParen <= 0) return i;
 			else if (x.charAt(i) == ')') passedParen--;
