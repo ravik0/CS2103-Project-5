@@ -1,5 +1,13 @@
 package main;
 
+import javafx.scene.Node;
+import javafx.scene.layout.Border;
+import javafx.scene.layout.BorderStroke;
+import javafx.scene.layout.BorderStrokeStyle;
+import javafx.scene.layout.BorderWidths;
+import javafx.scene.layout.CornerRadii;
+import javafx.scene.paint.Color;
+
 public interface Expression {
 	/**
 	 * Returns the expression's parent.
@@ -49,5 +57,28 @@ public interface Expression {
 			sb.append('\t');
 		}
 	}
+	
+	/**
+	 * Border for showing a focused expression
+	 */
+	public static final Border RED_BORDER = new Border(
+	  new BorderStroke(Color.RED, BorderStrokeStyle.SOLID, CornerRadii.EMPTY, BorderWidths.DEFAULT)
+	);
+
+	/**
+	 * Border for showing a non-focused expression
+	 */
+	public static final Border NO_BORDER = null;
+
+	/**
+	 * Color used for a "ghosted" expression
+	 */
+	public static final Color GHOST_COLOR = Color.LIGHTGREY;
+	
+	/**
+	 * Returns the JavaFX node associated with this expression.
+	 * @return the JavaFX node associated with this expression.
+	 */
+	Node getNode ();
 	
 }

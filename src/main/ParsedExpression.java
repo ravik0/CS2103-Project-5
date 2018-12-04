@@ -3,6 +3,8 @@ package main;
 import java.util.ArrayList;
 import java.util.List;
 
+import javafx.scene.Node;
+
 /**
  * Class to hold data from a parsed mathematical expression.
  * @author Ravi
@@ -102,4 +104,10 @@ public class ParsedExpression implements CompoundExpression{
 		}
 		return true;
 	}
+
+	@Override
+	public Node getNode() {
+		return null;
+	}
+
 }
