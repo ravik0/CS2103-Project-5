@@ -80,7 +80,7 @@ public class ExpressionEditor extends Application {
 					expression.getNode().setLayoutY(WINDOW_HEIGHT/2);
 
 					// If the parsed expression is a CompoundExpression, then register some callbacks
-					if (expression instanceof CompoundExpression) {
+					if (!((ParsedExpression)expression).isLiteral()) {
 						((Pane) expression.getNode()).setBorder(Expression.NO_BORDER);
 						final MouseEventHandler eventHandler = new MouseEventHandler(expressionPane, (CompoundExpression) expression);
 						expressionPane.setOnMousePressed(eventHandler);

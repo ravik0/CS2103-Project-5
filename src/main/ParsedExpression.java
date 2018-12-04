@@ -68,7 +68,7 @@ public class ParsedExpression implements CompoundExpression{
 	}
 
 	public void addSubexpression(Expression subexpression) {
-		if((getName().length() == 1 && Character.isLetter(getName().charAt(0)) || ParsedExpression.isNumber(getName()))) throw new IllegalArgumentException("Subexpression is literal!");
+		if(isLiteral()) throw new IllegalArgumentException("Subexpression is literal!");
 		//if the length is 1 and it's a letter (L -> [a-z]) or it's a number (L -> [0-9]+) then you can't add to this expression, it's terminal
 		_children.add(subexpression);
 		subexpression.setParent(this); //set the parent here to lower complexity in the user functions
@@ -108,6 +108,10 @@ public class ParsedExpression implements CompoundExpression{
 	@Override
 	public Node getNode() {
 		return null;
+	}
+	
+	public boolean isLiteral() {
+		return (getName().length() == 1 && Character.isLetter(getName().charAt(0)) || ParsedExpression.isNumber(getName()));
 	}
 
 }
