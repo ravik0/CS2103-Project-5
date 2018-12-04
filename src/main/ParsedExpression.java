@@ -4,6 +4,8 @@ import java.util.ArrayList;
 import java.util.List;
 
 import javafx.scene.Node;
+import javafx.scene.control.Label;
+import javafx.scene.layout.HBox;
 
 /**
  * Class to hold data from a parsed mathematical expression.
@@ -14,11 +16,13 @@ public class ParsedExpression implements CompoundExpression{
 	private List<Expression> _children;
 	private CompoundExpression _parent;
 	private String _name;
+	private HBox _node;
 	
 	public ParsedExpression(String name) {
 		_parent = null;
 		_children = new ArrayList<Expression>();
 		_name = name;
+		_node = null;
 	}
 
 	public CompoundExpression getParent() {
@@ -107,7 +111,30 @@ public class ParsedExpression implements CompoundExpression{
 
 	@Override
 	public Node getNode() {
-		return null;
+		if(_node == null) formNode();
+		return _node;
+	}
+	
+	private void formNode() {
+		if(isLiteral()) {
+			_node = new HBox(new Label(getName()));
+		}
+		else {
+			_node = new HBox();
+			if(!getName().equals("()")) {
+				for(int i = 0; i < _children.size(); i++) {
+					_node.getChildren().add(_children.get(i).getNode());
+					if(i != _children.size()-1) _node.getChildren().add(new Label(this.getName()));
+				}
+			}
+			else {
+				_node.getChildren().add(new Label("("));
+				for(int i = 0; i < _children.size(); i++) {
+					_node.getChildren().add(_children.get(i).getNode());
+				}
+				_node.getChildren().add(new Label(")"));
+			}
+		}
 	}
 	
 	public boolean isLiteral() {
