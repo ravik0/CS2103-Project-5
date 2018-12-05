@@ -47,7 +47,6 @@ public class ExpressionEditor extends Application {
 				_startSceneY = event.getSceneY();
 				List<Expression> children = node.getChildren();
 				final Point2D mouseLocal = root.sceneToLocal(event.getSceneX(), event.getSceneY());
-				System.out.println(mouseLocal);
 				for(int i = 0; i < children.size(); i++) {
 					if(children.get(i).getNode().getBoundsInParent().contains(mouseLocal)) {
 						root = children.get(i).getNode();
