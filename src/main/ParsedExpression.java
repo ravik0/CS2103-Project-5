@@ -90,7 +90,7 @@ public class ParsedExpression implements CompoundExpression{
 	 * Returns the name of this expression, so either a literal or mathematical term
 	 * @return the name of the expression
 	 */
-	private String getName() {
+	public String getName() {
 		return _name;
 	}
 	
@@ -139,6 +139,10 @@ public class ParsedExpression implements CompoundExpression{
 	
 	public boolean isLiteral() {
 		return (getName().length() == 1 && Character.isLetter(getName().charAt(0)) || ParsedExpression.isNumber(getName()));
+	}
+	
+	public boolean hasParent() {
+		return _parent != null;
 	}
 
 }
