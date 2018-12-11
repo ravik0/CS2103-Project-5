@@ -1,12 +1,17 @@
 package main;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import javafx.geometry.Bounds;
 import javafx.scene.Node;
+import javafx.scene.Scene;
 import javafx.scene.control.Label;
+import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.HBox;
+import javafx.scene.layout.Pane;
 import javafx.scene.paint.Paint;
 import javafx.scene.text.Font;
 
@@ -21,6 +26,7 @@ public class ParsedExpression implements CompoundExpression{
 	private String _name;
 	private HBox _node;
 	private List<Label> _labelList;
+	private Map<Double, Expression> configPositions;
 	
 	public ParsedExpression(String name) {
 		_parent = null;
@@ -28,6 +34,7 @@ public class ParsedExpression implements CompoundExpression{
 		_name = name;
 		_node = null;
 		_labelList = new ArrayList<Label>();
+		configPositions = new HashMap<Double, Expression>();
 	}
 
 	public CompoundExpression getParent() {
@@ -166,4 +173,80 @@ public class ParsedExpression implements CompoundExpression{
 			((ParsedExpression)_children.get(i)).setExpressionColor(color);
 		}
 	}
+	
+	public List<List<Expression>> getOtherPossibleConfigurations() {
+		List<Expression> otherChildren = ((ParsedExpression)_parent).getChildren();
+
+		List<List<Expression>> newConfigs = new ArrayList<List<Expression>>();
+		
+		newConfigs.add(listCopy(otherChildren));
+		
+		int index = otherChildren.indexOf(this);
+		
+		List<Expression> toSwap = newConfigs.get(0);
+		for(int i = index; i < otherChildren.size()-1; i++) {
+			newConfigs.add(swapRight(toSwap, i));
+			toSwap = newConfigs.get(newConfigs.size()-1);
+		}
+		toSwap = newConfigs.get(0);
+		for(int i = index; i > 0; i--) {
+			newConfigs.add(swapLeft(toSwap, i));
+			toSwap = newConfigs.get(newConfigs.size()-1);
+		}
+		
+		return newConfigs;
+	}
+	
+	private List<Expression> listCopy(List<Expression> toCopy) {
+		List<Expression> ret = new ArrayList<Expression>();
+		for(int i = 0; i < toCopy.size(); i++) {
+			ret.add(toCopy.get(i));
+		}
+		return ret;
+	}
+	
+	private List<Expression> swapRight(List<Expression> toSwap, int index) {
+		List<Expression> ret = new ArrayList<Expression>();
+		for(int i = 0; i < index; i++) {
+			ret.add(toSwap.get(i));
+		}
+		ret.add(toSwap.get(index+1));
+		ret.add(toSwap.get(index));
+		for(int i = index+2; i < toSwap.size(); i++) {
+			ret.add(toSwap.get(i));
+		}
+		return ret;
+	}
+	
+	private List<Expression> swapLeft(List<Expression> toSwap, int index) {
+		List<Expression> ret = new ArrayList<Expression>();
+		for(int i = 0; i < index-1; i++) {
+			ret.add(toSwap.get(i));
+		}
+		ret.add(toSwap.get(index));
+		ret.add(toSwap.get(index-1));
+		for(int i = index+1; i < toSwap.size(); i++) {
+			ret.add(toSwap.get(i));
+		}
+		return ret;
+	}
+	
+	private Expression addParent(List<Expression> toAdd) {
+		ParsedExpression parent = (ParsedExpression) this.getParent().deepCopy();
+		parent.getChildren().clear();
+		for(int i = 0; i < toAdd.size(); i++) {
+			parent.addSubexpression(toAdd.get(i).deepCopy());
+		}
+		return parent;
+	}
+	
+	public List<Expression> findXPositions(double width, double height, Node root, Pane pane) {
+		List<List<Expression>> otherConfigs = getOtherPossibleConfigurations();
+		List<Expression> parentConfigs = new ArrayList<Expression>();
+		for(int i = 0; i < otherConfigs.size(); i++) {
+			parentConfigs.add(addParent(otherConfigs.get(i)));
+		}
+		return parentConfigs;
+	}
+	
 }

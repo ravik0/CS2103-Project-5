@@ -12,6 +12,7 @@ import javafx.scene.layout.Pane;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.Node;
+import javafx.scene.Parent;
 import javafx.scene.control.Button;
 import javafx.scene.control.TextField;
 import javafx.scene.input.MouseEvent;
@@ -47,6 +48,8 @@ public class ExpressionEditor extends Application {
 		}
 
 		public void handle (MouseEvent event) {
+			System.out.println(node.getNode().getBoundsInParent());
+			System.out.println(((ParsedExpression) node).getChildren().get(1).getNode().getBoundsInParent());
 			if (event.getEventType() == MouseEvent.MOUSE_PRESSED) {
 				_startSceneX = event.getSceneX();
 				_startSceneY = event.getSceneY();
@@ -62,13 +65,15 @@ public class ExpressionEditor extends Application {
 						root.setStyle("");
 						root = children.get(i).getNode();
 						node = (ParsedExpression) children.get(i);
-						root.setStyle("-fx-border-color: red;");
+						root.setStyle("-fx-border-color: red;");	
 						node.setExpressionColor(Paint.valueOf("gray"));
+						node.findXPositions(root.getLayoutX(), root.getTranslateX(), root, pane);
 						deepCopy = (ParsedExpression) node.deepCopy();
 						deepCopyNode = deepCopy.getNode();
 						deepCopyNode.setLayoutX(root.localToScene(0,0).getX());
 						deepCopyNode.setLayoutY(root.localToScene(0,0).getY()-25);
 						pane.getChildren().add(deepCopyNode);
+						
 						break;
 					}
 					else if (i == children.size()-1) {
@@ -90,7 +95,7 @@ public class ExpressionEditor extends Application {
 				root.setTranslateY(0);
 				pane.getChildren().remove(deepCopyNode);
 				node.setExpressionColor(Paint.valueOf("black"));
-				System.out.println(originalExpression.convertToString(0));
+				//System.out.println(originalExpression.convertToString(0));
 			}
 		}
 	}
