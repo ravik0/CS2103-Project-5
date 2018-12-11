@@ -48,8 +48,6 @@ public class ExpressionEditor extends Application {
 		}
 
 		public void handle (MouseEvent event) {
-			System.out.println(node.getNode().getBoundsInParent());
-			System.out.println(((ParsedExpression) node).getChildren().get(1).getNode().getBoundsInParent());
 			if (event.getEventType() == MouseEvent.MOUSE_PRESSED) {
 				_startSceneX = event.getSceneX();
 				_startSceneY = event.getSceneY();
