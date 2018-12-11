@@ -3,9 +3,12 @@ package main;
 import java.util.ArrayList;
 import java.util.List;
 
+import javafx.geometry.Bounds;
 import javafx.scene.Node;
 import javafx.scene.control.Label;
 import javafx.scene.layout.HBox;
+import javafx.scene.paint.Paint;
+import javafx.scene.text.Font;
 
 /**
  * Class to hold data from a parsed mathematical expression.
@@ -17,12 +20,14 @@ public class ParsedExpression implements CompoundExpression{
 	private CompoundExpression _parent;
 	private String _name;
 	private HBox _node;
+	private List<Label> _labelList;
 	
 	public ParsedExpression(String name) {
 		_parent = null;
 		_children = new ArrayList<Expression>();
 		_name = name;
 		_node = null;
+		_labelList = new ArrayList<Label>();
 	}
 
 	public CompoundExpression getParent() {
@@ -117,24 +122,32 @@ public class ParsedExpression implements CompoundExpression{
 	
 	private void formNode() {
 		if(isLiteral()) {
-			_node = new HBox(new Label(getName()));
+			_labelList.add(new Label(getName()));
+			_node = new HBox(_labelList.get(0));
 		}
 		else {
 			_node = new HBox();
 			if(!getName().equals("()")) {
+				Label name = new Label(getName());
 				for(int i = 0; i < _children.size(); i++) {
 					_node.getChildren().add(_children.get(i).getNode());
-					if(i != _children.size()-1) _node.getChildren().add(new Label(this.getName()));
+					if(i != _children.size()-1) _node.getChildren().add(name);
+					_labelList.add(name);
+					name = new Label(getName());
 				}
 			}
 			else {
-				_node.getChildren().add(new Label("("));
+				Label openParen = new Label("(");
+				_labelList.add(openParen);
+				_node.getChildren().add(openParen);
 				for(int i = 0; i < _children.size(); i++) {
 					_node.getChildren().add(_children.get(i).getNode());
 				}
-				_node.getChildren().add(new Label(")"));
+				Label closedParen = new Label(")");
+				_labelList.add(closedParen);
+				_node.getChildren().add(closedParen);
 			}
-		}
+		} 
 	}
 	
 	public boolean isLiteral() {
@@ -145,4 +158,12 @@ public class ParsedExpression implements CompoundExpression{
 		return _parent != null;
 	}
 
+	public void setExpressionColor(Paint color) {
+		for(int i = 0; i < _labelList.size(); i++) {
+			_labelList.get(i).setTextFill(color);
+		}
+		for(int i = 0; i < _children.size(); i++) {
+			((ParsedExpression)_children.get(i)).setExpressionColor(color);
+		}
+	}
 }

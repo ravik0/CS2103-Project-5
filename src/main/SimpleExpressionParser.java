@@ -63,6 +63,7 @@ public class SimpleExpressionParser implements ExpressionParser {
 		return top;
 	}
 	
+	
 	/**
 	 * Helper function to add a non-parsed subexpression to an already parsed expression
 	 * @param top the parsed expression

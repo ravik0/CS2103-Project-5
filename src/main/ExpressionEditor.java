@@ -17,6 +17,7 @@ import javafx.scene.control.TextField;
 import javafx.scene.input.MouseEvent;
 import javafx.event.EventHandler;
 import javafx.scene.layout.StackPane;
+import javafx.scene.paint.Paint;
 import javafx.scene.shape.Rectangle;
 import javafx.stage.Stage;
 
@@ -33,6 +34,10 @@ public class ExpressionEditor extends Application {
 		private Pane pane;
 		private Node root;
 		private ParsedExpression node;
+		
+		private ParsedExpression deepCopy;
+		private Node deepCopyNode;
+		
 		private double _startSceneX;
 		private double _startSceneY;
 		MouseEventHandler (Pane pane_, CompoundExpression rootExpression_) {
@@ -46,27 +51,46 @@ public class ExpressionEditor extends Application {
 				_startSceneX = event.getSceneX();
 				_startSceneY = event.getSceneY();
 				List<Expression> children = node.getChildren();
-				final Point2D mouseLocal = root.sceneToLocal(event.getSceneX(), event.getSceneY());
+				Point2D mousePos = root.sceneToLocal(new Point2D(_startSceneX, _startSceneY));
+				if(children.size() == 0) {
+					root.setStyle("");
+					root = originalExpression.getNode();
+					node = originalExpression;
+				}
 				for(int i = 0; i < children.size(); i++) {
-					if(children.get(i).getNode().getBoundsInParent().contains(mouseLocal)) {
+					if(children.get(i).getNode().getBoundsInParent().contains(mousePos)) {
+						root.setStyle("");
 						root = children.get(i).getNode();
 						node = (ParsedExpression) children.get(i);
+						root.setStyle("-fx-border-color: red;");
+						node.setExpressionColor(Paint.valueOf("gray"));
+						deepCopy = (ParsedExpression) node.deepCopy();
+						deepCopyNode = deepCopy.getNode();
+						deepCopyNode.setLayoutX(root.localToScene(0,0).getX());
+						deepCopyNode.setLayoutY(root.localToScene(0,0).getY()-25);
+						pane.getChildren().add(deepCopyNode);
+						break;
 					}
 					else if (i == children.size()-1) {
+						root.setStyle("");
 						root = originalExpression.getNode();
 						node = originalExpression;
 					}
 				}
 			} 
 			else if (event.getEventType() == MouseEvent.MOUSE_DRAGGED && node.hasParent()) {
-				root.setTranslateX(event.getSceneX()-_startSceneX);
-				root.setTranslateY(event.getSceneY()-_startSceneY);
+				root.setStyle("");
+				deepCopyNode.setTranslateX(event.getSceneX()-_startSceneX);
+				deepCopyNode.setTranslateY(event.getSceneY()-_startSceneY);
 			} 
 			else if (event.getEventType() == MouseEvent.MOUSE_RELEASED) {
 				root.setLayoutX(root.getLayoutX() + root.getTranslateX());
 				root.setLayoutY(root.getLayoutY() + root.getTranslateY());
 				root.setTranslateX(0);
 				root.setTranslateY(0);
+				pane.getChildren().remove(deepCopyNode);
+				node.setExpressionColor(Paint.valueOf("black"));
+				System.out.println(originalExpression.convertToString(0));
 			}
 		}
 	}
