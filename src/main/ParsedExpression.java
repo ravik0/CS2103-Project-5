@@ -156,9 +156,6 @@ public class ParsedExpression implements CompoundExpression{
 				_node.getChildren().add(closedParen);
 			}
 		} 
-		for(int i = 0; i < _labelList.size(); i++) {
-			_labelList.get(i).setFont(Font.font("Comic Sans", 15)); //set font to the best font
-		}
 	}
 	
 	/**
