@@ -7,6 +7,7 @@ import java.util.Map;
 
 import javafx.geometry.Bounds;
 import javafx.scene.Node;
+import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.scene.control.Label;
 import javafx.scene.layout.BorderPane;
@@ -49,7 +50,7 @@ public class ParsedExpression implements CompoundExpression{
 		final CompoundExpression end = new ParsedExpression(new String(_name));
 		if(_children.size() == 0) return end;
 		for(int i = 0; i < _children.size(); i++) {
-			final Expression child = _children.get(i).deepCopy(); //recursively copy down the tree
+			final Expression child = ((ParsedExpression) _children.get(i)).deepCopy(); //recursively copy down the tree
 			end.addSubexpression(child);
 		}
 		return end;
@@ -174,7 +175,7 @@ public class ParsedExpression implements CompoundExpression{
 		}
 	}
 	
-	public List<List<Expression>> getOtherPossibleConfigurations() {
+	public Map<Integer, Expression> getOtherPossibleConfigurations() {
 		List<Expression> otherChildren = ((ParsedExpression)_parent).getChildren();
 
 		List<List<Expression>> newConfigs = new ArrayList<List<Expression>>();
@@ -194,7 +195,16 @@ public class ParsedExpression implements CompoundExpression{
 			toSwap = newConfigs.get(newConfigs.size()-1);
 		}
 		
-		return newConfigs;
+		List<Expression> parentConfigs = new ArrayList<Expression>();
+		for(int i = 0; i < newConfigs.size(); i++) {
+			parentConfigs.add(addParent(newConfigs.get(i)));
+		}
+		
+		Map<Integer, Expression> ret = new HashMap<Integer,Expression>();
+		for(int i = 0; i < parentConfigs.size(); i++) {
+			ret.put(newConfigs.get(i).indexOf(this), parentConfigs.get(i));
+		}
+		return ret;
 	}
 	
 	private List<Expression> listCopy(List<Expression> toCopy) {
@@ -232,7 +242,7 @@ public class ParsedExpression implements CompoundExpression{
 	}
 	
 	private Expression addParent(List<Expression> toAdd) {
-		ParsedExpression parent = (ParsedExpression) this.getParent().deepCopy();
+		ParsedExpression parent = (ParsedExpression) getParent().deepCopy();
 		parent.getChildren().clear();
 		for(int i = 0; i < toAdd.size(); i++) {
 			parent.addSubexpression(toAdd.get(i).deepCopy());
@@ -240,13 +250,51 @@ public class ParsedExpression implements CompoundExpression{
 		return parent;
 	}
 	
-	public List<Expression> findXPositions(double width, double height, Node root, Pane pane) {
-		List<List<Expression>> otherConfigs = getOtherPossibleConfigurations();
-		List<Expression> parentConfigs = new ArrayList<Expression>();
-		for(int i = 0; i < otherConfigs.size(); i++) {
-			parentConfigs.add(addParent(otherConfigs.get(i)));
+	public static ParsedExpression getOriginal(Expression x) {
+		ParsedExpression ret = (ParsedExpression) x;
+		while(ret.hasParent()) {
+			ret = (ParsedExpression) ret.getParent();
 		}
-		return parentConfigs;
+		return ret;
 	}
 	
+	public void reformNode() {
+		_node = null;
+		getNode();
+	}
+	
+	/*public boolean trueEqual(ParsedExpression x) {
+		if(_children.size() == 0 && this.getName().equals(x.getName())) return true;
+		for(int i = 0; i < x.getChildren().size(); i++) {
+			if() {
+				return false;
+			}
+		}
+		return true;
+	}*/
+	
+	public void convertTo(ParsedExpression x) {
+		List<String> thisList = makeListString(this);
+		List<String> xList = makeListString(x);
+		Map<String, Integer> newIndices = new HashMap<String,Integer>();
+		for(int i = 0; i < thisList.size(); i++) {
+			newIndices.put(thisList.get(i), xList.indexOf(thisList.get(i)));
+		}
+		List<Expression> newChildren = new ArrayList<Expression>();
+		for(int i = 0; i < thisList.size(); i++) newChildren.add(null);
+		for(int i = 0; i < thisList.size(); i++) {
+			newChildren.set(newIndices.get(thisList.get(i)), _children.get(i));
+		}
+		_children = newChildren;
+	}
+	
+	private List<String> makeListString(ParsedExpression x) {
+		List<String> ret = new ArrayList<String>();
+		for(int i = 0; i < x.getChildren().size(); i++) {
+			ret.add(((ParsedExpression) x.getChildren().get(i)).getName());
+		}
+		return ret;
+	}
+	
+
 }

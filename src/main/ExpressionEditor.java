@@ -41,10 +41,17 @@ public class ExpressionEditor extends Application {
 		
 		private double _startSceneX;
 		private double _startSceneY;
+		
+		private Map<Integer, Expression> otherPossibleConfigurations;
+		private Map<Integer, Double> configPositions;
+		
+		private Expression nearest;
 		MouseEventHandler (Pane pane_, CompoundExpression rootExpression_) {
 			pane = pane_;
 			root = rootExpression_.getNode();
 			node = (ParsedExpression)rootExpression_;
+			otherPossibleConfigurations = new HashMap<Integer, Expression>();
+			configPositions = new HashMap<Integer, Double>();
 		}
 
 		public void handle (MouseEvent event) {
@@ -65,13 +72,17 @@ public class ExpressionEditor extends Application {
 						node = (ParsedExpression) children.get(i);
 						root.setStyle("-fx-border-color: red;");	
 						node.setExpressionColor(Paint.valueOf("gray"));
-						node.findXPositions(root.getLayoutX(), root.getTranslateX(), root, pane);
 						deepCopy = (ParsedExpression) node.deepCopy();
 						deepCopyNode = deepCopy.getNode();
 						deepCopyNode.setLayoutX(root.localToScene(0,0).getX());
 						deepCopyNode.setLayoutY(root.localToScene(0,0).getY()-25);
 						pane.getChildren().add(deepCopyNode);
-						
+						otherPossibleConfigurations = node.getOtherPossibleConfigurations();
+						for(int a = 0; a < ((ParsedExpression)node.getParent()).getChildren().size(); a++) {
+							otherPossibleConfigurations.get(a).getNode().setLayoutY(5000);
+							otherPossibleConfigurations.get(a).getNode().setLayoutX(WINDOW_WIDTH/4);
+							pane.getChildren().add(otherPossibleConfigurations.get(a).getNode());
+						}
 						break;
 					}
 					else if (i == children.size()-1) {
@@ -81,10 +92,33 @@ public class ExpressionEditor extends Application {
 					}
 				}
 			} 
-			else if (event.getEventType() == MouseEvent.MOUSE_DRAGGED && node.hasParent()) {
+			else if (event.getEventType() == MouseEvent.MOUSE_DRAGGED && !node.equals(originalExpression)) {
 				root.setStyle("");
 				deepCopyNode.setTranslateX(event.getSceneX()-_startSceneX);
 				deepCopyNode.setTranslateY(event.getSceneY()-_startSceneY);
+				if(configPositions.isEmpty()) {
+					for(int i = 0; i < ((ParsedExpression)node.getParent()).getChildren().size(); i++) {
+						configPositions.put(i, ((ParsedExpression)otherPossibleConfigurations.get(i)).getChildren().get(i).getNode().getBoundsInParent().getMinX());
+					}
+				}
+				int index = findNearestX(node.getParent().getNode().sceneToLocal(event.getSceneX(), event.getSceneY()).getX());
+				pane.getChildren().remove(originalExpression.getNode());
+				nearest = otherPossibleConfigurations.get(index);
+				if(((ParsedExpression) node.getParent()).hasParent()) {
+					pane.getChildren().remove(originalExpression.getNode());
+					List<Integer> path = find(originalExpression, (ParsedExpression) node, new ArrayList<Integer>());
+					ParsedExpression temp = goDownList(originalExpression, path);
+					int indexOfTemp = ((ParsedExpression)temp.getParent()).getChildren().indexOf(temp);	
+					((ParsedExpression)temp).convertTo((ParsedExpression) nearest);
+					System.out.println(originalExpression.convertToString(2));
+				}
+				else {
+					originalExpression = (ParsedExpression) nearest;
+					originalExpression.reformNode();
+				}
+				originalExpression.getNode().setLayoutX(WINDOW_WIDTH/4);
+				originalExpression.getNode().setLayoutY(WINDOW_HEIGHT/2);
+				pane.getChildren().add(originalExpression.getNode());
 			} 
 			else if (event.getEventType() == MouseEvent.MOUSE_RELEASED) {
 				root.setLayoutX(root.getLayoutX() + root.getTranslateX());
@@ -93,8 +127,52 @@ public class ExpressionEditor extends Application {
 				root.setTranslateY(0);
 				pane.getChildren().remove(deepCopyNode);
 				node.setExpressionColor(Paint.valueOf("black"));
+				
+				configPositions.clear();
+				
 				//System.out.println(originalExpression.convertToString(0));
 			}
+		}
+		
+		private int findNearestX(double mouseX) {
+			int nearest = 0;
+			for(int i = 0; i < configPositions.size(); i++) {
+				if(Math.abs(mouseX-configPositions.get(i)) < Math.abs(mouseX-configPositions.get(nearest))) {
+					nearest = i;
+				}
+				otherPossibleConfigurations.get(i).getNode().setLayoutY(5000);
+			}
+			return nearest;
+		}
+		
+		private List<Integer> find(ParsedExpression toSearch, ParsedExpression target, List<Integer> path) {
+			if(toSearch.equals(target)) {
+				return path;
+			}
+			for(int i = 0; i < toSearch.getChildren().size(); i++) {
+				List<Integer> newPath = listCopy(path);
+				newPath.add(i);
+				List<Integer> possiblePath = find((ParsedExpression)toSearch.getChildren().get(i), target, newPath);
+				if(possiblePath != null) {
+					return possiblePath;
+				}
+			}
+			return null;
+		}
+		
+		private ParsedExpression goDownList(ParsedExpression target, List<Integer> path) {
+			if(path.isEmpty()) return (ParsedExpression) target.getParent();
+			List<Integer> newPath = listCopy(path);
+			newPath.remove(0);
+			return (goDownList((ParsedExpression) target.getChildren().get(path.get(0)), newPath));
+		}
+		
+		private List<Integer> listCopy(List<Integer> toCopy) {
+			List<Integer> ret = new ArrayList<Integer>();
+			for(int i = 0; i < toCopy.size(); i++) {
+				ret.add(toCopy.get(i));
+			}
+			return ret;
 		}
 	}
 
