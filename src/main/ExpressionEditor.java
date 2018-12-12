@@ -98,7 +98,7 @@ public class ExpressionEditor extends Application {
 				deepCopyNode.setTranslateY(event.getSceneY()-_startSceneY);
 				if(configPositions.isEmpty()) {
 					for(int i = 0; i < ((ParsedExpression)node.getParent()).getChildren().size(); i++) {
-						configPositions.put(i, ((ParsedExpression)otherPossibleConfigurations.get(i)).getChildren().get(i).getNode().getBoundsInParent().getMinX());
+						configPositions.put(i, ((ParsedExpression)otherPossibleConfigurations.get(i)).getChildren().get(i).getNode().getBoundsInParent().getMaxX());
 					}
 				}
 				int index = findNearestX(node.getParent().getNode().sceneToLocal(event.getSceneX(), event.getSceneY()).getX());
@@ -114,7 +114,6 @@ public class ExpressionEditor extends Application {
 				}
 				else {
 					originalExpression = (ParsedExpression) nearest;
-					node.setExpressionColor(Paint.valueOf("gray"));
 					originalExpression.reformNode();
 				}
 				originalExpression.getNode().setLayoutX(WINDOW_WIDTH/4);
