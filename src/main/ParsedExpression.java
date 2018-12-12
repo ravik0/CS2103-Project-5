@@ -24,10 +24,9 @@ import javafx.scene.text.Font;
 public class ParsedExpression implements CompoundExpression{
 	private List<Expression> _children;
 	private CompoundExpression _parent;
-	private String _name;
+	final private String _name;
 	private HBox _node;
-	private List<Label> _labelList;
-	private Map<Double, Expression> configPositions;
+	final private List<Label> _labelList;
 	
 	public ParsedExpression(String name) {
 		_parent = null;
@@ -35,7 +34,6 @@ public class ParsedExpression implements CompoundExpression{
 		_name = name;
 		_node = null;
 		_labelList = new ArrayList<Label>();
-		configPositions = new HashMap<Double, Expression>();
 	}
 
 	public CompoundExpression getParent() {
@@ -122,16 +120,18 @@ public class ParsedExpression implements CompoundExpression{
 		return true;
 	}
 
-	@Override
 	public Node getNode() {
 		if(_node == null) formNode();
 		return _node;
 	}
 	
+	/**
+	 * Helper function to create the node
+	 */
 	private void formNode() {
 		if(isLiteral()) {
-			_labelList.add(new Label(getName()));
-			_node = new HBox(_labelList.get(0));
+			_labelList.add(new Label(getName())); //add to a list of labels for this expression
+			_node = new HBox(_labelList.get(0)); //creates node
 		}
 		else {
 			_node = new HBox();
@@ -141,39 +141,55 @@ public class ParsedExpression implements CompoundExpression{
 					_node.getChildren().add(_children.get(i).getNode());
 					if(i != _children.size()-1) _node.getChildren().add(name);
 					_labelList.add(name);
-					name = new Label(getName());
+					name = new Label(getName()); //avoids the error of adding the same label to the HBox's children by just making a new Label with same string contents.
 				}
 			}
 			else {
-				Label openParen = new Label("(");
+				final Label openParen = new Label("(");
 				_labelList.add(openParen);
 				_node.getChildren().add(openParen);
 				for(int i = 0; i < _children.size(); i++) {
 					_node.getChildren().add(_children.get(i).getNode());
 				}
-				Label closedParen = new Label(")");
+				final Label closedParen = new Label(")");
 				_labelList.add(closedParen);
 				_node.getChildren().add(closedParen);
 			}
 		} 
 		for(int i = 0; i < _labelList.size(); i++) {
-			_labelList.get(i).setFont(Font.font("Comic Sans", 20));
+			_labelList.get(i).setFont(Font.font("Comic Sans", 15)); //set font to the best font
 		}
 	}
 	
+	/**
+	 * Function to reform the node if the underlying expression is changed
+	 */
 	public void reformNode() {
 		_node = null;
+		_labelList.clear();
 		formNode();
 	}
 	
+	/**
+	 * Function to check if this expression is literal
+	 * @return true if literal, false otherwise
+	 */
 	public boolean isLiteral() {
 		return (getName().length() == 1 && Character.isLetter(getName().charAt(0)) || ParsedExpression.isNumber(getName()));
 	}
 	
+	/**
+	 * Function to check if this expression has a parent
+	 * @return true if has parent, false otherwise
+	 */
 	public boolean hasParent() {
 		return _parent != null;
 	}
 
+	/**
+	 * Function to set the node of this expression to a certain color
+	 * @param color the color to set to
+	 */
 	public void setExpressionColor(Paint color) {
 		for(int i = 0; i < _labelList.size(); i++) {
 			_labelList.get(i).setTextFill(color);
@@ -183,15 +199,20 @@ public class ParsedExpression implements CompoundExpression{
 		}
 	}
 	
+	/**
+	 * Function to get all the possible configurations that this expression could be in
+	 * @return a map containing the index of this expression and the overall expression
+	 */
 	public Map<Integer, Expression> getOtherPossibleConfigurations() {
-		List<Expression> otherChildren = ((ParsedExpression)_parent).getChildren();
+		final List<Expression> otherChildren = ((ParsedExpression)_parent).getChildren();
 
-		List<List<Expression>> newConfigs = new ArrayList<List<Expression>>();
+		final List<List<Expression>> newConfigs = new ArrayList<List<Expression>>();
 		
-		newConfigs.add(listCopy(otherChildren));
+		newConfigs.add(listCopy(otherChildren)); 
 		
-		int index = otherChildren.indexOf(this);
+		final int index = otherChildren.indexOf(this);
 		
+		//moves this expression around to find all other configurations
 		List<Expression> toSwap = newConfigs.get(0);
 		for(int i = index; i < otherChildren.size()-1; i++) {
 			newConfigs.add(swapRight(toSwap, i));
@@ -203,28 +224,40 @@ public class ParsedExpression implements CompoundExpression{
 			toSwap = newConfigs.get(newConfigs.size()-1);
 		}
 		
-		List<Expression> parentConfigs = new ArrayList<Expression>();
+		//ties the list of expressions to a parent
+		final List<Expression> parentConfigs = new ArrayList<Expression>();
 		for(int i = 0; i < newConfigs.size(); i++) {
 			parentConfigs.add(addParent(newConfigs.get(i)));
 		}
 		
-		Map<Integer, Expression> ret = new HashMap<Integer,Expression>();
+		final Map<Integer, Expression> ret = new HashMap<Integer,Expression>();
 		for(int i = 0; i < parentConfigs.size(); i++) {
 			ret.put(newConfigs.get(i).indexOf(this), parentConfigs.get(i));
 		}
 		return ret;
 	}
 	
+	/**
+	 * Helper function to copy a list of expressions into a new list, avoiding pointer issues
+	 * @param toCopy the list to copy
+	 * @return a list with the same contents but different pointer
+	 */
 	private List<Expression> listCopy(List<Expression> toCopy) {
-		List<Expression> ret = new ArrayList<Expression>();
+		final List<Expression> ret = new ArrayList<Expression>();
 		for(int i = 0; i < toCopy.size(); i++) {
 			ret.add(toCopy.get(i));
 		}
 		return ret;
 	}
 	
+	/**
+	 * Swaps the expression at index in toSwap to the right by 1
+	 * @param toSwap the list containing the expression to swap
+	 * @param index the index to swap at
+	 * @return a new list that has the index swapped right
+	 */
 	private List<Expression> swapRight(List<Expression> toSwap, int index) {
-		List<Expression> ret = new ArrayList<Expression>();
+		final List<Expression> ret = new ArrayList<Expression>();
 		for(int i = 0; i < index; i++) {
 			ret.add(toSwap.get(i));
 		}
@@ -236,8 +269,14 @@ public class ParsedExpression implements CompoundExpression{
 		return ret;
 	}
 	
+	/**
+	 * Swaps the expression at index in toSwap to the left by 1
+	 * @param toSwap the list containing the expression to swap
+	 * @param index the index to swap at
+	 * @return a new list that has the index swapped left
+	 */
 	private List<Expression> swapLeft(List<Expression> toSwap, int index) {
-		List<Expression> ret = new ArrayList<Expression>();
+		final List<Expression> ret = new ArrayList<Expression>();
 		for(int i = 0; i < index-1; i++) {
 			ret.add(toSwap.get(i));
 		}
@@ -249,8 +288,13 @@ public class ParsedExpression implements CompoundExpression{
 		return ret;
 	}
 	
+	/**
+	 * Helper function to add a list of expressions to the parent of this.
+	 * @param toAdd the list of children to add
+	 * @return a new expression, with the expression being the parent (deepcopied) and the children being toAdd
+	 */
 	private Expression addParent(List<Expression> toAdd) {
-		ParsedExpression parent = (ParsedExpression) getParent().deepCopy();
+		final ParsedExpression parent = (ParsedExpression) getParent().deepCopy();
 		parent.getChildren().clear();
 		for(int i = 0; i < toAdd.size(); i++) {
 			parent.addSubexpression(toAdd.get(i).deepCopy());
@@ -258,6 +302,11 @@ public class ParsedExpression implements CompoundExpression{
 		return parent;
 	}
 	
+	/**
+	 * Function that will go from any point in an expression and return the top of the tree
+	 * @param x the expression to go from
+	 * @return the full expression where x is a subexpression of the returned expression
+	 */
 	public static ParsedExpression getOriginal(Expression x) {
 		ParsedExpression ret = (ParsedExpression) x;
 		while(ret.hasParent()) {
@@ -266,23 +315,34 @@ public class ParsedExpression implements CompoundExpression{
 		return ret;
 	}
 	
+	/**
+	 * A function that will take a ParsedExpression which has the same children as this but in a different order, and convert
+	 * this expression's children to be in the same order while maintaining the same pointers rather than changing them to 
+	 * new objects.
+	 * @param x the expression to convert to
+	 */
 	public void convertTo(ParsedExpression x) {
-		List<String> thisList = makeListString(this);
-		List<String> xList = makeListString(x);
-		Map<String, Integer> newIndices = new HashMap<String,Integer>();
+		final List<String> thisList = makeListString(this);
+		final List<String> xList = makeListString(x);
+		final Map<String, Integer> newIndices = new HashMap<String,Integer>();
 		for(int i = 0; i < thisList.size(); i++) {
-			newIndices.put(thisList.get(i), xList.indexOf(thisList.get(i)));
+			newIndices.put(thisList.get(i), xList.indexOf(thisList.get(i))); //the new indices of each child expression is stored in the map, tied to the name of the child expression
 		}
-		List<Expression> newChildren = new ArrayList<Expression>();
-		for(int i = 0; i < thisList.size(); i++) newChildren.add(null);
+		final List<Expression> newChildren = new ArrayList<Expression>();
+		for(int i = 0; i < thisList.size(); i++) newChildren.add(null); //set up the list so we can just use .set instead of add(index, element), negligable loss of performance
 		for(int i = 0; i < thisList.size(); i++) {
-			newChildren.set(newIndices.get(thisList.get(i)), _children.get(i));
+			newChildren.set(newIndices.get(thisList.get(i)), _children.get(i)); //set the new indicies.
 		}
-		_children = newChildren;
+		_children = newChildren; //set current children to new children, different order but the same children and same pointers
 	}
 	
+	/**
+	 * A helper function that takes a ParsedExpression and converts its children to a list of strings containing their names
+	 * @param x the expression to convert
+	 * @return a list of strings - the strings are the names of the children and the ordering is the exact same as the children.
+	 */
 	private List<String> makeListString(ParsedExpression x) {
-		List<String> ret = new ArrayList<String>();
+		final List<String> ret = new ArrayList<String>();
 		for(int i = 0; i < x.getChildren().size(); i++) {
 			ret.add(((ParsedExpression) x.getChildren().get(i)).getName());
 		}

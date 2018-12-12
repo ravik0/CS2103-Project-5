@@ -23,7 +23,6 @@ import javafx.scene.shape.Rectangle;
 import javafx.stage.Stage;
 
 public class ExpressionEditor extends Application {
-	private static ParsedExpression originalExpression;
 	public static void main (String[] args) {
 		launch(args);
 	}
@@ -32,7 +31,7 @@ public class ExpressionEditor extends Application {
 	 * Mouse event handler for the entire pane that constitutes the ExpressionEditor
 	 */
 	private static class MouseEventHandler implements EventHandler<MouseEvent> {
-		private Pane pane;
+		final private Pane pane;
 		private Node root;
 		private ParsedExpression node;
 		
@@ -45,6 +44,8 @@ public class ExpressionEditor extends Application {
 		private Map<Integer, Expression> otherPossibleConfigurations;
 		private Map<Integer, Double> configPositions;
 		
+		private static ParsedExpression originalExpression;
+		
 		private Expression nearest;
 		MouseEventHandler (Pane pane_, CompoundExpression rootExpression_) {
 			pane = pane_;
@@ -52,71 +53,93 @@ public class ExpressionEditor extends Application {
 			node = (ParsedExpression)rootExpression_;
 			otherPossibleConfigurations = new HashMap<Integer, Expression>();
 			configPositions = new HashMap<Integer, Double>();
+			originalExpression = (ParsedExpression) rootExpression_;
 		}
 
 		public void handle (MouseEvent event) {
 			if (event.getEventType() == MouseEvent.MOUSE_PRESSED) {
 				_startSceneX = event.getSceneX();
 				_startSceneY = event.getSceneY();
-				List<Expression> children = node.getChildren();
-				Point2D mousePos = root.sceneToLocal(new Point2D(_startSceneX, _startSceneY));
-				if(children.size() == 0) {
+				final List<Expression> children = node.getChildren();
+				final Point2D mousePos = root.sceneToLocal(new Point2D(_startSceneX, _startSceneY));
+				if(children.size() == 0) { //if no children and mouse pressed, reset focus
 					root.setStyle("");
 					root = originalExpression.getNode();
-					node = originalExpression;
+					node = originalExpression; 
 				}
+				
 				for(int i = 0; i < children.size(); i++) {
 					if(children.get(i).getNode().getBoundsInParent().contains(mousePos)) {
+						//focus section, reset current focus style and refocus on the child.
 						root.setStyle("");
 						root = children.get(i).getNode();
 						node = (ParsedExpression) children.get(i);
 						root.setStyle("-fx-border-color: red;");	
 						node.setExpressionColor(Paint.valueOf("gray"));
+						
+						//deep copy section, make a deepcopy, set its position, and show it
 						deepCopy = (ParsedExpression) node.deepCopy();
 						deepCopyNode = deepCopy.getNode();
 						deepCopyNode.setLayoutX(root.localToScene(0,0).getX());
 						deepCopyNode.setLayoutY(root.localToScene(0,0).getY()-25);
 						pane.getChildren().add(deepCopyNode);
+						
+						//make the other possible configurations
 						otherPossibleConfigurations = node.getOtherPossibleConfigurations();
 						for(int a = 0; a < ((ParsedExpression)node.getParent()).getChildren().size(); a++) {
 							otherPossibleConfigurations.get(a).getNode().setLayoutY(5000);
 							otherPossibleConfigurations.get(a).getNode().setLayoutX(WINDOW_WIDTH/4);
+							//add the other configs very far offscreen but in the correct x position such that we know the x position of the focuses.
 							pane.getChildren().add(otherPossibleConfigurations.get(a).getNode());
+							//this was necessary, attempting to do it in ParsedExpression lead to 3 hours of work with nothing accomplished
+							//the positions did not seem to get initialized for rootExpression until a mouse click so this was the best comprimise
+							//could've attempted to emulate this inside of parsedExpression but that is just so much more work.
 						}
+						
 						break;
 					}
 					else if (i == children.size()-1) {
 						root.setStyle("");
 						root = originalExpression.getNode();
 						node = originalExpression;
+						//if we don't find it, root is now the originalExpression
 					}
 				}
 			} 
-			else if (event.getEventType() == MouseEvent.MOUSE_DRAGGED && !node.equals(originalExpression)) {
+			else if (event.getEventType() == MouseEvent.MOUSE_DRAGGED && !node.equals(originalExpression)) { //if we drag and node is NOT the original expression
+				
+				//move the deepcopy
 				root.setStyle("");
 				deepCopyNode.setTranslateX(event.getSceneX()-_startSceneX);
 				deepCopyNode.setTranslateY(event.getSceneY()-_startSceneY);
+				
+				//if we don't have positions for all other configurations, we make that
 				if(configPositions.isEmpty()) {
 					for(int i = 0; i < ((ParsedExpression)node.getParent()).getChildren().size(); i++) {
 						configPositions.put(i, ((ParsedExpression)otherPossibleConfigurations.get(i)).getChildren().get(i).getNode().getBoundsInParent().getMaxX());
 					}
 				}
-				int index = findNearestX(node.getParent().getNode().sceneToLocal(event.getSceneX(), event.getSceneY()).getX());
+				
+				//we find the x position we're closed to
+				final int index = findNearestX(node.getParent().getNode().sceneToLocal(event.getSceneX(), event.getSceneY()).getX());
 				pane.getChildren().remove(originalExpression.getNode());
 				nearest = otherPossibleConfigurations.get(index);
-				if(((ParsedExpression) node.getParent()).hasParent()) {
-					List<Integer> path = find(originalExpression, (ParsedExpression) node, new ArrayList<Integer>());
-					ParsedExpression temp = goDownList(originalExpression, path);
-					int indexOfTemp = ((ParsedExpression)temp.getParent()).getChildren().indexOf(temp);	
+				if(((ParsedExpression) node.getParent()).hasParent()) { //if the parent has a parent (i.e the parent is not the original expression
+					final List<Integer> path = find(originalExpression, (ParsedExpression) node, new ArrayList<Integer>()); 
+					final ParsedExpression temp = goDownList(originalExpression, path);
+					final int indexOfTemp = ((ParsedExpression)temp.getParent()).getChildren().indexOf(temp);	
 					((ParsedExpression)temp).convertTo((ParsedExpression) nearest);
-					//System.out.println(originalExpression.convertToString(2));
 					originalExpression.reformNode();
+					//we traverse down the tree until we find the node we are selecting
+					//we then find the index of the other config we want to use
+					//we then convert the current node to that new configuration and reform the originalexpression node.
 				}
 				else {
 					originalExpression = (ParsedExpression) nearest;
 					originalExpression.reformNode();
+					//otherwise nearest is just what we want so we do that and reform the node
 				}
-				originalExpression.getNode().setLayoutX(WINDOW_WIDTH/4);
+				originalExpression.getNode().setLayoutX(WINDOW_WIDTH/4); //reset the layout
 				originalExpression.getNode().setLayoutY(WINDOW_HEIGHT/2);
 				pane.getChildren().add(originalExpression.getNode());
 			} 
@@ -134,6 +157,11 @@ public class ExpressionEditor extends Application {
 			}
 		}
 		
+		/**
+		 * Helper function to find the nearest x position to our mouseX in the other possible configurations
+		 * @param mouseX the current mouse position
+		 * @return the index of the nearest other possible configuration
+		 */
 		private int findNearestX(double mouseX) {
 			int nearest = 0;
 			for(int i = 0; i < configPositions.size(); i++) {
@@ -145,6 +173,13 @@ public class ExpressionEditor extends Application {
 			return nearest;
 		}
 		
+		/**
+		 * An implementation of a tree-search using depth-first search. It finds the index-path to follow to find the target
+		 * @param toSearch the expression to search
+		 * @param target what we want to find
+		 * @param path the current path
+		 * @return the path if we found it, null otherwise
+		 */
 		private List<Integer> find(ParsedExpression toSearch, ParsedExpression target, List<Integer> path) {
 			if(toSearch.equals(target)) {
 				return path;
@@ -160,6 +195,12 @@ public class ExpressionEditor extends Application {
 			return null;
 		}
 		
+		/**
+		 * A function that will go down a given index-path list (gotten from the find function) and will return the parent of the expression we wanted to find
+		 * @param target the thing we are going down on
+		 * @param path the path we are going to follow
+		 * @return the parent of what we are searching for, such that what we are searching for is in the children
+		 */
 		private ParsedExpression goDownList(ParsedExpression target, List<Integer> path) {
 			if(path.isEmpty()) return (ParsedExpression) target.getParent();
 			List<Integer> newPath = listCopy(path);
@@ -167,6 +208,11 @@ public class ExpressionEditor extends Application {
 			return (goDownList((ParsedExpression) target.getChildren().get(path.get(0)), newPath));
 		}
 		
+		/**
+		 * A function to copy a list of integers into a new list of integers, keeping the same object pointers within but with a new list pointer
+		 * @param toCopy the list to copy
+		 * @return a new list containing the same integers in the same order but with a new list pointer.
+		 */
 		private List<Integer> listCopy(List<Integer> toCopy) {
 			List<Integer> ret = new ArrayList<Integer>();
 			for(int i = 0; i < toCopy.size(); i++) {
@@ -210,7 +256,6 @@ public class ExpressionEditor extends Application {
 					// Success! Add the expression's Node to the expressionPane
 					final Expression expression = expressionParser.parse(textField.getText(), true);
 					System.out.println(expression.convertToString(0));
-					originalExpression = (ParsedExpression) expression;
 					expressionPane.getChildren().clear();
 					expressionPane.getChildren().add(expression.getNode());
 					expression.getNode().setLayoutX(WINDOW_WIDTH/4);
