@@ -105,15 +105,16 @@ public class ExpressionEditor extends Application {
 				pane.getChildren().remove(originalExpression.getNode());
 				nearest = otherPossibleConfigurations.get(index);
 				if(((ParsedExpression) node.getParent()).hasParent()) {
-					pane.getChildren().remove(originalExpression.getNode());
 					List<Integer> path = find(originalExpression, (ParsedExpression) node, new ArrayList<Integer>());
 					ParsedExpression temp = goDownList(originalExpression, path);
 					int indexOfTemp = ((ParsedExpression)temp.getParent()).getChildren().indexOf(temp);	
 					((ParsedExpression)temp).convertTo((ParsedExpression) nearest);
-					System.out.println(originalExpression.convertToString(2));
+					//System.out.println(originalExpression.convertToString(2));
+					originalExpression.reformNode();
 				}
 				else {
 					originalExpression = (ParsedExpression) nearest;
+					node.setExpressionColor(Paint.valueOf("gray"));
 					originalExpression.reformNode();
 				}
 				originalExpression.getNode().setLayoutX(WINDOW_WIDTH/4);
@@ -130,7 +131,7 @@ public class ExpressionEditor extends Application {
 				
 				configPositions.clear();
 				
-				//System.out.println(originalExpression.convertToString(0));
+				System.out.println(originalExpression.convertToString(0));
 			}
 		}
 		

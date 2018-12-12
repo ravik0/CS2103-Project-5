@@ -158,6 +158,11 @@ public class ParsedExpression implements CompoundExpression{
 		} 
 	}
 	
+	public void reformNode() {
+		_node = null;
+		formNode();
+	}
+	
 	public boolean isLiteral() {
 		return (getName().length() == 1 && Character.isLetter(getName().charAt(0)) || ParsedExpression.isNumber(getName()));
 	}
@@ -257,21 +262,6 @@ public class ParsedExpression implements CompoundExpression{
 		}
 		return ret;
 	}
-	
-	public void reformNode() {
-		_node = null;
-		getNode();
-	}
-	
-	/*public boolean trueEqual(ParsedExpression x) {
-		if(_children.size() == 0 && this.getName().equals(x.getName())) return true;
-		for(int i = 0; i < x.getChildren().size(); i++) {
-			if() {
-				return false;
-			}
-		}
-		return true;
-	}*/
 	
 	public void convertTo(ParsedExpression x) {
 		List<String> thisList = makeListString(this);
