@@ -334,6 +334,9 @@ public class ParsedExpression implements CompoundExpression{
 		_children = newChildren; //set current children to new children, different order but the same children and same pointers
 		for(int i = 0; i < _children.size(); i++) {
 			((ParsedExpression) _children.get(i)).convertTo((ParsedExpression) x.getChildren().get(i));
+			//recursively convert in case we need to do that. 
+			//better safe than sorry
+			//efficiency doesn't matter much here so yeah
 		}
 	}
 	
@@ -347,6 +350,8 @@ public class ParsedExpression implements CompoundExpression{
 		for(int i = 0; i < x.getChildren().size(); i++) {
 			if(!(((ParsedExpression) x.getChildren().get(i)).getChildren()).isEmpty()) {
 				ret.add(((ParsedExpression) x.getChildren().get(i)).getName() + ((ParsedExpression) ((ParsedExpression) x.getChildren().get(i)).getChildren().get(0)).getName());
+				//this is in case we have two equal names, such as in the example expression
+				//if we have * * * (), the names will instead be *2 *3 *4 ()* to differentiate.
 			}
 			else {
 				ret.add(((ParsedExpression) x.getChildren().get(i)).getName());
