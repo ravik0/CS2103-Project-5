@@ -272,7 +272,7 @@ public class ExpressionEditor extends Application {
 					expressionPane.getChildren().add(expression.getNode());
 					expression.getNode().setLayoutX(WINDOW_WIDTH/4);
 					expression.getNode().setLayoutY(WINDOW_HEIGHT/2);
-					expressionPane.setStyle("-fx-font: 15 \"Comic Sans MS\";"); //set font to best font
+					expressionPane.setStyle("-fx-font: 24 \"Comic Sans MS\";"); //set font to best font
 
 					// If the parsed expression is a CompoundExpression, then register some callbacks
 					if (!((ParsedExpression)expression).isLiteral()) {
