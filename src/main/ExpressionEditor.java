@@ -2,6 +2,7 @@ package main;
 import javafx.application.Application;
 import java.util.*;
 
+import javafx.geometry.Bounds;
 import javafx.geometry.Point2D;
 import javafx.scene.control.Label;
 import javafx.event.ActionEvent;
@@ -44,7 +45,7 @@ public class ExpressionEditor extends Application {
 		private Map<Integer, Expression> otherPossibleConfigurations;
 		private Map<Integer, Double> configPositions;
 		
-		private static ParsedExpression originalExpression;
+		private ParsedExpression originalExpression;
 		
 		private Expression nearest;
 		MouseEventHandler (Pane pane_, CompoundExpression rootExpression_) {
@@ -107,7 +108,6 @@ public class ExpressionEditor extends Application {
 				}
 			} 
 			else if (event.getEventType() == MouseEvent.MOUSE_DRAGGED && !node.equals(originalExpression)) { //if we drag and node is NOT the original expression
-				
 				//move the deepcopy
 				root.setStyle("");
 				deepCopyNode.setTranslateX(event.getSceneX()-_startSceneX);
@@ -116,7 +116,8 @@ public class ExpressionEditor extends Application {
 				//if we don't have positions for all other configurations, we make that
 				if(configPositions.isEmpty()) {
 					for(int i = 0; i < ((ParsedExpression)node.getParent()).getChildren().size(); i++) {
-						configPositions.put(i, ((ParsedExpression)otherPossibleConfigurations.get(i)).getChildren().get(i).getNode().getBoundsInParent().getMaxX());
+						final Bounds theBounds = ((ParsedExpression)otherPossibleConfigurations.get(i)).getChildren().get(i).getNode().getBoundsInParent();
+						configPositions.put(i, theBounds.getWidth()/2+theBounds.getMinX());
 					}
 				}
 				
@@ -127,32 +128,25 @@ public class ExpressionEditor extends Application {
 				if(((ParsedExpression) node.getParent()).hasParent()) { //if the parent has a parent (i.e the parent is not the original expression
 					final List<Integer> path = find(originalExpression, (ParsedExpression) node, new ArrayList<Integer>()); 
 					final ParsedExpression temp = goDownList(originalExpression, path);
-					final int indexOfTemp = ((ParsedExpression)temp.getParent()).getChildren().indexOf(temp);	
 					((ParsedExpression)temp).convertTo((ParsedExpression) nearest);
-					originalExpression.reformNode();
 					//we traverse down the tree until we find the node we are selecting
 					//we then find the index of the other config we want to use
 					//we then convert the current node to that new configuration and reform the originalexpression node.
+					originalExpression.convertTo(ParsedExpression.getOriginal(temp));
 				}
 				else {
-					originalExpression = (ParsedExpression) nearest;
-					originalExpression.reformNode();
+					originalExpression.convertTo((ParsedExpression) nearest);
 					//otherwise nearest is just what we want so we do that and reform the node
 				}
+				originalExpression.reformNode();
 				originalExpression.getNode().setLayoutX(WINDOW_WIDTH/4); //reset the layout
 				originalExpression.getNode().setLayoutY(WINDOW_HEIGHT/2);
 				pane.getChildren().add(originalExpression.getNode());
 			} 
 			else if (event.getEventType() == MouseEvent.MOUSE_RELEASED) {
-				root.setLayoutX(root.getLayoutX() + root.getTranslateX());
-				root.setLayoutY(root.getLayoutY() + root.getTranslateY());
-				root.setTranslateX(0);
-				root.setTranslateY(0);
 				pane.getChildren().remove(deepCopyNode);
 				node.setExpressionColor(Paint.valueOf("black"));
-				
 				configPositions.clear();
-				
 				System.out.println(originalExpression.convertToString(0));
 			}
 		}
@@ -260,7 +254,7 @@ public class ExpressionEditor extends Application {
 					expressionPane.getChildren().add(expression.getNode());
 					expression.getNode().setLayoutX(WINDOW_WIDTH/4);
 					expression.getNode().setLayoutY(WINDOW_HEIGHT/2);
-					expressionPane.setStyle("-fx-font: 15 \"Comic Sans MS\";");
+					expressionPane.setStyle("-fx-font: 15 \"Comic Sans MS\";"); //set font to best font
 
 					// If the parsed expression is a CompoundExpression, then register some callbacks
 					if (!((ParsedExpression)expression).isLiteral()) {

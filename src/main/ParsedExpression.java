@@ -194,6 +194,7 @@ public class ParsedExpression implements CompoundExpression{
 		for(int i = 0; i < _children.size(); i++) {
 			((ParsedExpression)_children.get(i)).setExpressionColor(color);
 		}
+		
 	}
 	
 	/**
@@ -331,6 +332,9 @@ public class ParsedExpression implements CompoundExpression{
 			newChildren.set(newIndices.get(thisList.get(i)), _children.get(i)); //set the new indicies.
 		}
 		_children = newChildren; //set current children to new children, different order but the same children and same pointers
+		for(int i = 0; i < _children.size(); i++) {
+			((ParsedExpression) _children.get(i)).convertTo((ParsedExpression) x.getChildren().get(i));
+		}
 	}
 	
 	/**
@@ -341,7 +345,12 @@ public class ParsedExpression implements CompoundExpression{
 	private List<String> makeListString(ParsedExpression x) {
 		final List<String> ret = new ArrayList<String>();
 		for(int i = 0; i < x.getChildren().size(); i++) {
-			ret.add(((ParsedExpression) x.getChildren().get(i)).getName());
+			if(!(((ParsedExpression) x.getChildren().get(i)).getChildren()).isEmpty()) {
+				ret.add(((ParsedExpression) x.getChildren().get(i)).getName() + ((ParsedExpression) ((ParsedExpression) x.getChildren().get(i)).getChildren().get(0)).getName());
+			}
+			else {
+				ret.add(((ParsedExpression) x.getChildren().get(i)).getName());
+			}
 		}
 		return ret;
 	}
