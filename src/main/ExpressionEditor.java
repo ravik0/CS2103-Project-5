@@ -16,6 +16,7 @@ import javafx.scene.Node;
 import javafx.scene.Parent;
 import javafx.scene.control.Button;
 import javafx.scene.control.TextField;
+import javafx.scene.input.MouseButton;
 import javafx.scene.input.MouseEvent;
 import javafx.event.EventHandler;
 import javafx.scene.layout.StackPane;
@@ -49,7 +50,6 @@ public class ExpressionEditor extends Application {
 		
 		int oldIndex;
 		private Expression nearest;
-		boolean changed = false;
 		MouseEventHandler (Pane pane_, CompoundExpression rootExpression_) {
 			pane = pane_;
 			root = rootExpression_.getNode();
@@ -66,7 +66,7 @@ public class ExpressionEditor extends Application {
 				final List<Expression> children = node.getChildren();
 				final Point2D mousePos = root.sceneToLocal(new Point2D(_startSceneX, _startSceneY));
 				if(children.size() == 0) { //if no children and mouse pressed, reset focus
-					root.setStyle("");
+					node.setFocused(false);
 					root = originalExpression.getNode();
 					node = originalExpression; 
 				}
@@ -88,12 +88,6 @@ public class ExpressionEditor extends Application {
 			else if (event.getEventType() == MouseEvent.MOUSE_RELEASED) {
 				pane.getChildren().remove(deepCopyNode);
 				node.setExpressionColor(Paint.valueOf("black"));
-				if(changed) {
-					root.setStyle("");
-					root = originalExpression.getNode();
-					node = originalExpression;
-					changed = false; //if the expression changes, set focus to original expression.
-				}
 				configPositions.clear();
 				System.out.println(originalExpression.convertToString(0));
 			}
@@ -172,10 +166,10 @@ public class ExpressionEditor extends Application {
 			for(int i = 0; i < children.size(); i++) {
 				if(children.get(i).getNode().getBoundsInParent().contains(mousePos)) {
 					//focus section, reset current focus style and refocus on the child.
-					root.setStyle("");
+					node.setFocused(false);
 					root = children.get(i).getNode();
 					node = (ParsedExpression) children.get(i);
-					root.setStyle("-fx-border-color: red;");	
+					node.setFocused(true);
 					node.setExpressionColor(Paint.valueOf("gray"));
 					
 					//deep copy section, make a deepcopy, set its position, and show it
@@ -200,7 +194,7 @@ public class ExpressionEditor extends Application {
 					break;
 				}
 				else if (i == children.size()-1) {
-					root.setStyle("");
+					node.setFocused(false);
 					root = originalExpression.getNode();
 					node = originalExpression;
 					//if we don't find it, root is now the originalExpression
@@ -235,8 +229,6 @@ public class ExpressionEditor extends Application {
 				originalExpression.getNode().setLayoutY(WINDOW_HEIGHT/2);
 				node.setExpressionColor(Paint.valueOf("gray"));
 				pane.getChildren().add(originalExpression.getNode());
-				root.setStyle("-fx-border-color: red;");	
-				changed = true;
 			}
 			oldIndex = index;	
 		}

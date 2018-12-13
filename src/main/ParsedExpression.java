@@ -28,6 +28,7 @@ public class ParsedExpression implements CompoundExpression{
 	final private String _name;
 	private HBox _node;
 	final private List<Label> _labelList;
+	private boolean isFocused;
 	
 	public ParsedExpression(String name) {
 		_parent = null;
@@ -192,6 +193,8 @@ public class ParsedExpression implements CompoundExpression{
 		for(int i = 0; i < _labelList.size(); i++) {
 			_labelList.get(i).setTextFill(color);
 		}
+		if(isFocused) getNode().setStyle("-fx-border-color: red;");
+		else if (!isFocused) getNode().setStyle("");
 		for(int i = 0; i < _children.size(); i++) {
 			((ParsedExpression)_children.get(i)).setExpressionColor(color);
 		}
@@ -359,6 +362,15 @@ public class ParsedExpression implements CompoundExpression{
 			}
 		}
 		return ret;
+	}
+	
+	/**
+	 * Set whether this node is focused or not
+	 * @param x true if focused, false otherwise
+	 */
+	public void setFocused(boolean x) {
+		isFocused = x;
+		if(!x) setExpressionColor(Paint.valueOf("black"));
 	}
 	
 
