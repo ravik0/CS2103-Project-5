@@ -13,6 +13,7 @@ import javafx.scene.control.Label;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Pane;
+import javafx.scene.paint.Color;
 import javafx.scene.paint.Paint;
 import javafx.scene.text.Font;
 
@@ -194,7 +195,6 @@ public class ParsedExpression implements CompoundExpression{
 		for(int i = 0; i < _children.size(); i++) {
 			((ParsedExpression)_children.get(i)).setExpressionColor(color);
 		}
-		
 	}
 	
 	/**
@@ -338,6 +338,7 @@ public class ParsedExpression implements CompoundExpression{
 			//better safe than sorry
 			//efficiency doesn't matter much here so yeah
 		}
+		reformNode();
 	}
 	
 	/**
