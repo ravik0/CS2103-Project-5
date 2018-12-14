@@ -88,6 +88,9 @@ public class ExpressionEditor extends Application {
 			else if (event.getEventType() == MouseEvent.MOUSE_RELEASED) {
 				pane.getChildren().remove(deepCopyNode);
 				node.setExpressionColor(Paint.valueOf("black"));
+				for(int i = 0; i < otherPossibleConfigurations.size(); i++) {
+					pane.getChildren().remove(otherPossibleConfigurations.get(i).getNode());
+				}
 				configPositions.clear();
 				System.out.println(originalExpression.convertToString(0));
 			}
