@@ -29,6 +29,7 @@ public class ParsedExpression implements CompoundExpression{
 	private HBox _node;
 	final private List<Label> _labelList;
 	private boolean isFocused;
+	private int identifier;
 	
 	public ParsedExpression(String name) {
 		_parent = null;
@@ -36,6 +37,7 @@ public class ParsedExpression implements CompoundExpression{
 		_name = name;
 		_node = null;
 		_labelList = new ArrayList<Label>();
+		identifier = (int)(Math.random()*Integer.MAX_VALUE)  +1;
 	}
 
 	public CompoundExpression getParent() {
@@ -48,9 +50,10 @@ public class ParsedExpression implements CompoundExpression{
 
 	public Expression deepCopy() {
 		final CompoundExpression end = new ParsedExpression(new String(_name));
+		((ParsedExpression)end).setIdentifier(this.identifier);
 		if(_children.size() == 0) return end;
 		for(int i = 0; i < _children.size(); i++) {
-			final Expression child = ((ParsedExpression) _children.get(i)).deepCopy(); //recursively copy down the tree
+			final Expression child = ((ParsedExpression) _children.get(i)).deepCopy();//recursively copy down the tree
 			end.addSubexpression(child);
 		}
 		return end;
@@ -161,9 +164,19 @@ public class ParsedExpression implements CompoundExpression{
 	}
 	
 	/**
+	 * Sets the identifier of an expression to a certain integer. This is used
+	 * when deep copying, so the deep copy has the same identifier as the
+	 * normal one.
+	 * @param x the new value of the identifier.
+	 */
+	private void setIdentifier(int x) {
+		identifier = x;
+	}
+	
+	/**
 	 * Function to reform the node if the underlying expression is changed
 	 */
-	public void reformNode() {
+	private void reformNode() {
 		_node = null;
 		_labelList.clear();
 		formNode();
@@ -194,7 +207,7 @@ public class ParsedExpression implements CompoundExpression{
 			_labelList.get(i).setTextFill(color);
 		}
 		if(isFocused) getNode().setStyle("-fx-border-color: red;");
-		else if (!isFocused) getNode().setStyle("");
+		else getNode().setStyle("");
 		for(int i = 0; i < _children.size(); i++) {
 			((ParsedExpression)_children.get(i)).setExpressionColor(color);
 		}
@@ -352,14 +365,11 @@ public class ParsedExpression implements CompoundExpression{
 	private List<String> makeListString(ParsedExpression x) {
 		final List<String> ret = new ArrayList<String>();
 		for(int i = 0; i < x.getChildren().size(); i++) {
-			if(!(((ParsedExpression) x.getChildren().get(i)).getChildren()).isEmpty()) {
-				ret.add(((ParsedExpression) x.getChildren().get(i)).getName() + ((ParsedExpression) ((ParsedExpression) x.getChildren().get(i)).getChildren().get(0)).getName());
-				//this is in case we have two equal names, such as in the example expression
-				//if we have * * * (), the names will instead be *2 *3 *4 ()* to differentiate.
-			}
-			else {
-				ret.add(((ParsedExpression) x.getChildren().get(i)).getName());
-			}
+			final ParsedExpression child = ((ParsedExpression) x.getChildren().get(i));
+			ret.add(child.getName() + child.identifier);
+			//what this does is that it adds a unique identifier so that the program knows
+			//which is what and how to match them. like 2+x+x, it can identify the two x's 
+			//it is very, very unlikely two different expressions have the same identifier. 
 		}
 		return ret;
 	}
